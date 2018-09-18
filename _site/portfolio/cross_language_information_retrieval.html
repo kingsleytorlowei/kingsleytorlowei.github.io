@@ -1,0 +1,554 @@
+<!DOCTYPE html> <html lang="en-us"> <head> <link href="http://gmpg.org/xfn/11" rel="profile"> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <meta http-equiv="content-type" content="text/html; charset=utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"> <title> Cross Language Information Retrieval System &middot; Kingsley Torlowei </title> <script> (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){ (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o), m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m) })(window,document,'script','https://www.google-analytics.com/analytics.js','ga'); ga('create', 'UA-28655816-2', 'auto'); ga('send', 'pageview'); </script> <link type="text/css" rel="stylesheet" href="/assets/main.css"> <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-precomposed.png"> <link rel="shortcut icon" type="image/png" href="/public/favicon.png"> <link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml"> <title>Cross Language Information Retrieval System | Kingsley Torlowei</title> <meta property="og:title" content="Cross Language Information Retrieval System" /> <meta name="author" content="Kingsley Torlowei" /> <meta property="og:locale" content="en_US" /> <meta name="description" content="Cross language information retrieval system (CLIR) which, given a query in German, searches text documents written in English using Natural Language Processing." /> <meta property="og:description" content="Cross language information retrieval system (CLIR) which, given a query in German, searches text documents written in English using Natural Language Processing." /> <link rel="canonical" href="http://localhost:4000/portfolio/cross_language_information_retrieval" /> <meta property="og:url" content="http://localhost:4000/portfolio/cross_language_information_retrieval" /> <meta property="og:site_name" content="Kingsley Torlowei" /> <script type="application/ld+json"> {"@context":"http://schema.org","@type":"WebPage","headline":"Cross Language Information Retrieval System","author":{"@type":"Person","name":"Kingsley Torlowei"},"description":"Cross language information retrieval system (CLIR) which, given a query in German, searches text documents written in English using Natural Language Processing.","url":"http://localhost:4000/portfolio/cross_language_information_retrieval"}</script> </head> <body> <input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox"> <div class="sidebar" id="sidebar"> <div class="sidebar-item"> <div> <img src="/public/biopic.jpg"> </div> <p>Welcome to the internet home of <a href="http://Kingsleytorlowei.com">Kingsley Torlowei</a>. Data Scientist, Software Engineer. </p> <p>Feel free to look around, check out my portfolio, or get in touch.</p> <div class="social-icons"> <a href="https://www.linkedin.com/in/kingsleytorlowei" target="_blank"><i class="fa fa-linkedin-square fa-2x" aria-hidden="true"></i></a> <a href="https://github.com/kingsleytorlowei" target="_blank"><i class="fa fa-github fa-2x" aria-hidden="true"></i></a> <a href="https://twitter.com/__Kingsley"><i class="fa fa-twitter fa-2x" aria-hidden="true"></i></a> </div> </div> <nav class="sidebar-nav"> <a class="sidebar-nav-item" href="/">Home</a> <a class="sidebar-nav-item" href="/portfolio">Portfolio</a> <a class="sidebar-nav-item" href="/about">About</a> <a class="sidebar-nav-item" href="/resume">Resume</a> <span class="sidebar-nav-item">Currently v1.0.1</span> </nav> <div class="sidebar-item"> <p>Built with <i class="fa fa-heart" aria-hidden="true"></i> + <a href="http://www.jekyllrb.com">Jekyll</a>.</p> <p> &copy; 2018 Kingsley Torlowei. All rights reserved. </p> </div> </div> <div class="wrap"> <div class="masthead"> <div class="container"> </div> </div> <div class="container content"> <div class="notebook"> <h1 class="notebook-title">Cross Language Information Retrieval System</h1> <div class="project-skills"> Skills: Python, NLP, IR, Machine Translation, Language Models </div> <a target="_blank" href=https://github.com/sajal2692/data-science-portfolio/blob/master/Cross%20Language%20Information%20Retrieval.ipynb>Github</a> <hr /> <h4 id="overview">Overview</h4> <p>The aim of this project is to build a cross language information retrieval system (CLIR) which, given a query in German, will be capable of searching text documents written in English and displaying the results in German.</p> <p>We’re going to use machine translation, information retrieval using a vector space model, and then assess the performance of the system using IR evaluation techniques.</p> <p>Parts of the project are explained as we progress.</p> <h4 id="data-used">Data Used</h4> <ul> <li> <p>bitext.(en,de): A sentence aligned, parallel German-English corpus, sourced from the Europarl corpus (which is a collection of debates held in the EU parliament over a number of years). We’ll use this to develop word-alignment tools, and build a translation probability table.</p> </li> <li> <p>newstest.(en,de): A separate, smaller parallel corpus for evaulation of the translation system.</p> </li> <li> <p>devel.(docs,queries,qrel): A set of documents in English (sourced from Wikipedia), queries in German, and relevance judgement scores for each query-document pair.</p> </li> </ul> <p>The files are available to check out in the data/clir directory of the Github portfolio repo.</p> <h2 id="housekeeping-file-encodings-and-tokenisation">Housekeeping: File encodings and tokenisation</h2> <p>Since the data files we use is utf-8 encoded text, we need to convert the strings into ASCII by escaping the special symbols. We also import some libraries in this step as well.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">nltk.tokenize</span> <span class="kn">import</span> <span class="n">word_tokenize</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span> <span class="c">#To properly handle floating point divisions.</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="c">#Function to tokenise string/sentences.</span>
+<span class="k">def</span> <span class="nf">tokenize</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">tokenizer</span><span class="o">=</span><span class="n">word_tokenize</span><span class="p">):</span>
+    <span class="n">utf_line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">token</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'ascii'</span><span class="p">,</span> <span class="s">'backslashreplace'</span><span class="p">)</span> <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tokenizer</span><span class="p">(</span><span class="n">utf_line</span><span class="p">)]</span>
+</code></pre></div> <p>Now we can test out our tokenize function. Notice how it converts the word Über.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">tokenize</span><span class="p">(</span><span class="s">"Seit damals ist er auf über 10.000 Punkte gestiegen."</span><span class="p">)</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>['seit',
+ 'damals',
+ 'ist',
+ 'er',
+ 'auf',
+ '\\xfcber',
+ '10.000',
+ 'punkte',
+ 'gestiegen',
+ '.']
+</code></pre></div> <p>Let’s store the path of the data files as easily identifiable variables for future access.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">DEVELOPMENT_DOCS</span> <span class="o">=</span> <span class="s">'data/clir/devel.docs'</span> <span class="c">#Data file for IR engine development</span>
+
+<span class="n">DEVELOPMENT_QUERIES</span> <span class="o">=</span> <span class="s">'data/clir/devel.queries'</span> <span class="c">#Data file containing queries in German</span>
+
+<span class="n">DEVELOPMENT_QREL</span> <span class="o">=</span> <span class="s">'data/clir/devel.qrel'</span> <span class="c">#Data file containing a relevance score or query-doc pairs</span>
+
+<span class="n">BITEXT_ENG</span> <span class="o">=</span> <span class="s">'data/clir/bitext.en'</span> <span class="c">#Bitext data file in English for translation engine and language model development</span>
+
+<span class="n">BITEXT_DE</span> <span class="o">=</span> <span class="s">'data/clir/bitext.de'</span> <span class="c">#Bitext data file in German</span>
+
+<span class="n">NEWSTEST_ENG</span> <span class="o">=</span> <span class="s">'data/clir/newstest.en'</span> <span class="c">#File for testing language model</span>
+</code></pre></div> <p>With that out of the way, lets get to the meat of the project.</p> <p>As mentioned earlier, we’re going to build a CLIR engine consisting of information retrieval and translation components, and then evaluate its accuracy.</p> <p>The CLIR system will:</p> <ul> <li><strong>translate queries</strong> from German into English (because our searcheable corpus is in English), using word-based translation, a rather simplistic approach as opposed to the sophistication you might see in, say, <em>Google Translate</em>.</li> <li><strong>search over the document corpus</strong> using the Okapi BM25 IR ranking model, a variation of the traditional TF-IDF model.</li> <li><strong>evaluate the quality</strong> of ranked retrieval results using the query relevance judgements.</li> </ul> <h2 id="information-retrieval-using-okapi-bm25">Information Retrieval using <a href="https://en.wikipedia.org/wiki/Okapi_BM25">Okapi BM25</a></h2> <p>We’ll start by building an IR system, and give it a test run with some English queries.</p> <p>Here’s an overview of the tasks involved:</p> <ul> <li>Loading the data files, and tokenizing the input.</li> <li>Preprocessing the lexicon by stemming, removing stopwords.</li> <li>Calculating the TF/IDF representation for all documents in our wikipedia corpus.</li> <li>Storing an inverted index to efficiently documents, given a query term.</li> <li>Implementing querying with BM25.</li> <li>Test runs.</li> </ul> <p>So for our first task, we’ll load the devel.docs file, extract and tokenize the terms, and store them in a python dictionary with the document ids as keys.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">nltk</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="n">stopwords</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nltk</span><span class="o">.</span><span class="n">corpus</span><span class="o">.</span><span class="n">stopwords</span><span class="o">.</span><span class="n">words</span><span class="p">(</span><span class="s">'english'</span><span class="p">))</span> <span class="c">#converting stopwords to a set for faster processing in the future.</span>
+<span class="n">stemmer</span> <span class="o">=</span> <span class="n">nltk</span><span class="o">.</span><span class="n">stem</span><span class="o">.</span><span class="n">PorterStemmer</span><span class="p">()</span> 
+
+<span class="c">#Function to extract and tokenize terms from a document</span>
+<span class="k">def</span> <span class="nf">extract_and_tokenize_terms</span><span class="p">(</span><span class="n">doc</span><span class="p">):</span>
+    <span class="n">terms</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tokenize</span><span class="p">(</span><span class="n">doc</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">token</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stopwords</span><span class="p">:</span> <span class="c"># 'in' and 'not in' operations are faster over sets than lists</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r'</span><span class="err">\</span><span class="s">d'</span><span class="p">,</span><span class="n">token</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r'[^A-Za-z-]'</span><span class="p">,</span><span class="n">token</span><span class="p">):</span> <span class="c">#Removing numbers and punctuations </span>
+                <span class="c">#(excluding hyphenated words)</span>
+                <span class="n">terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stemmer</span><span class="o">.</span><span class="n">stem</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">lower</span><span class="p">()))</span>
+    <span class="k">return</span> <span class="n">terms</span>
+
+<span class="n">documents</span> <span class="o">=</span> <span class="p">{}</span> <span class="c">#Dictionary to store documents with ids as keys.</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Reading each line in the file and storing it documents dictionary</span>
+<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">DEVELOPMENT_DOCS</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">"</span><span class="se">\t</span><span class="s">"</span><span class="p">)</span>
+    <span class="n">terms</span> <span class="o">=</span> <span class="n">extract_and_tokenize_terms</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">documents</span><span class="p">[</span><span class="n">doc</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">terms</span>
+<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre></div> <p>To check if everything is working till now, let’s access a document from the dictionary, with the id ‘290’.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">documents</span><span class="p">[</span><span class="s">'290'</span><span class="p">][:</span><span class="mi">20</span><span class="p">]</span> <span class="c">#To keep things short, we're only going to check out 20 tokens.</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>[u'name',
+ u'plural',
+ u'ae',
+ u'first',
+ u'letter',
+ u'vowel',
+ u'iso',
+ u'basic',
+ u'latin',
+ u'alphabet',
+ u'similar',
+ u'ancient',
+ u'greek',
+ u'letter',
+ u'alpha',
+ u'deriv',
+ u'upper',
+ u'case',
+ u'version',
+ u'consist']
+</code></pre></div> <p>Now we’ll build an inverted index for the documents, so that we can quickly access documents for the terms we need.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Building an inverted index for the documents</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+    
+<span class="n">inverted_index</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">docid</span><span class="p">,</span> <span class="n">terms</span> <span class="ow">in</span> <span class="n">documents</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">terms</span><span class="p">:</span>
+        <span class="n">inverted_index</span><span class="p">[</span><span class="n">term</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">docid</span><span class="p">)</span>    
+</code></pre></div> <p>To test it out, the list of documents containing the word ‘pizza’:</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">inverted_index</span><span class="p">[</span><span class="s">'pizza'</span><span class="p">]</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="err">'121569',</span><span class="w">
+ </span><span class="err">'16553',</span><span class="w">
+ </span><span class="err">'212541',</span><span class="w">
+ </span><span class="err">'228211',</span><span class="w">
+ </span><span class="err">'261023',</span><span class="w">
+ </span><span class="err">'265975',</span><span class="w">
+ </span><span class="err">'276433',</span><span class="w">
+ </span><span class="err">'64083',</span><span class="w">
+ </span><span class="err">'69930',</span><span class="w">
+ </span><span class="err">'72701',</span><span class="w">
+ </span><span class="err">'73441',</span><span class="w">
+ </span><span class="err">'74323'</span><span class="p">}</span><span class="w">
+</span></code></pre></div> <p>On to the BM25 TF-IDF representation, we’ll create the td-idf matrix for terms-documents, first without the query component.</p> <p>The query component is dependent on the terms in our query. So we’ll just calculate that, and multiply it with the overall score when we want to retreive documents for a particular query.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Building a TF-IDF representation using BM25 </span>
+
+<span class="n">NO_DOCS</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">documents</span><span class="p">)</span> <span class="c">#Number of documents</span>
+
+<span class="n">AVG_LEN_DOC</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span> <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">documents</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">documents</span><span class="p">)</span> <span class="c">#Average length of documents</span>
+
+<span class="c">#The function below takes the documentid, and the term, to calculate scores for the tf and idf</span>
+<span class="c">#components, and multiplies them together.</span>
+<span class="k">def</span> <span class="nf">tf_idf_score</span><span class="p">(</span><span class="n">k1</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">term</span><span class="p">,</span><span class="n">docid</span><span class="p">):</span>  
+    
+    <span class="n">ft</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inverted_index</span><span class="p">[</span><span class="n">term</span><span class="p">])</span> 
+    <span class="n">term</span> <span class="o">=</span> <span class="n">stemmer</span><span class="o">.</span><span class="n">stem</span><span class="p">(</span><span class="n">term</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+    <span class="n">fdt</span> <span class="o">=</span>  <span class="n">documents</span><span class="p">[</span><span class="n">docid</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">term</span><span class="p">)</span>
+    
+    <span class="n">idf_comp</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="n">NO_DOCS</span> <span class="o">-</span> <span class="n">ft</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">ft</span><span class="o">+</span><span class="mf">0.5</span><span class="p">))</span>
+    
+    <span class="n">tf_comp</span> <span class="o">=</span> <span class="p">((</span><span class="n">k1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">fdt</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">k1</span><span class="o">*</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">b</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">documents</span><span class="p">[</span><span class="n">docid</span><span class="p">])</span><span class="o">/</span><span class="n">AVG_LEN_DOC</span><span class="p">))</span><span class="o">+</span><span class="n">fdt</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">idf_comp</span> <span class="o">*</span> <span class="n">tf_comp</span>
+
+<span class="c">#Function to create tf_idf matrix without the query component</span>
+<span class="k">def</span> <span class="nf">create_tf_idf</span><span class="p">(</span><span class="n">k1</span><span class="p">,</span><span class="n">b</span><span class="p">):</span>
+    <span class="n">tf_idf</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">inverted_index</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="k">for</span> <span class="n">docid</span> <span class="ow">in</span> <span class="n">inverted_index</span><span class="p">[</span><span class="n">term</span><span class="p">]:</span>
+            <span class="n">tf_idf</span><span class="p">[</span><span class="n">term</span><span class="p">][</span><span class="n">docid</span><span class="p">]</span> <span class="o">=</span> <span class="n">tf_idf_score</span><span class="p">(</span><span class="n">k1</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">term</span><span class="p">,</span><span class="n">docid</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tf_idf</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Creating tf_idf matrix with said parameter values: k1 and b for all documents.</span>
+<span class="n">tf_idf</span> <span class="o">=</span> <span class="n">create_tf_idf</span><span class="p">(</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">0.5</span><span class="p">)</span>
+</code></pre></div> <p>We took the default values for k1 and b (1.5 and 0.5), which seemed to give good results. Although these parameters may be altered depending on the type of data being dealth with.</p> <p>Now we create a method to retrieve the query component, and another method that will use the previous ones and retrieve the relevant documents for a query, sorted on the basis of their ranks.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Function to retrieve query component</span>
+<span class="k">def</span> <span class="nf">get_qtf_comp</span><span class="p">(</span><span class="n">k3</span><span class="p">,</span><span class="n">term</span><span class="p">,</span><span class="n">fqt</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">k3</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">fqt</span><span class="p">[</span><span class="n">term</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">k3</span> <span class="o">+</span> <span class="n">fqt</span><span class="p">[</span><span class="n">term</span><span class="p">])</span>
+
+
+<span class="c">#Function to retrieve documents || Returns a set of documents and their relevance scores. </span>
+<span class="k">def</span> <span class="nf">retr_docs</span><span class="p">(</span><span class="n">query</span><span class="p">,</span><span class="n">result_count</span><span class="p">):</span>
+    <span class="n">q_terms</span> <span class="o">=</span> <span class="p">[</span><span class="n">stemmer</span><span class="o">.</span><span class="n">stem</span><span class="p">(</span><span class="n">term</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">query</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="k">if</span> <span class="n">term</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stopwords</span><span class="p">]</span> <span class="c">#Removing stopwords from queries</span>
+    <span class="n">fqt</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">q_terms</span><span class="p">:</span>
+        <span class="n">fqt</span><span class="p">[</span><span class="n">term</span><span class="p">]</span> <span class="o">=</span> <span class="n">fqt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">term</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    
+    <span class="n">scores</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">fqt</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="c">#print word + ': '+ str(inverted_index[word])</span>
+        <span class="k">for</span> <span class="n">document</span> <span class="ow">in</span> <span class="n">inverted_index</span><span class="p">[</span><span class="n">word</span><span class="p">]:</span>
+            <span class="n">scores</span><span class="p">[</span><span class="n">document</span><span class="p">]</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">document</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">tf_idf</span><span class="p">[</span><span class="n">word</span><span class="p">][</span><span class="n">document</span><span class="p">]</span><span class="o">*</span><span class="n">get_qtf_comp</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">word</span><span class="p">,</span><span class="n">fqt</span><span class="p">))</span> <span class="c">#k3 chosen as 0 (default)</span>
+    
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">scores</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span><span class="n">key</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span> <span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)[:</span><span class="n">result_count</span><span class="p">]</span>        
+</code></pre></div> <p>Let’s try and retrieve a document for a query.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">retr_docs</span><span class="p">(</span><span class="s">"Manchester United"</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>[('19961', 12.570721363284687),
+ ('83266', 12.500367334396838),
+ ('266959', 12.46418348068098),
+ ('20206', 12.324327863972716),
+ ('253314', 12.008548114449386)]
+</code></pre></div> <p>Checking out the terms in the top ranked document..</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">documents</span><span class="p">[</span><span class="s">'19961'</span><span class="p">][:</span><span class="mi">30</span><span class="p">]</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>[u'manchest',
+ u'unit',
+ u'manchest',
+ u'unit',
+ u'footbal',
+ u'club',
+ u'english',
+ u'profession',
+ u'footbal',
+ u'club',
+ u'base',
+ u'old',
+ u'trafford',
+ u'greater',
+ u'manchest',
+ u'play',
+ u'premier',
+ u'leagu',
+ u'found',
+ u'newton',
+ u'heath',
+ u'lyr',
+ u'footbal',
+ u'club',
+ u'club',
+ u'chang',
+ u'name',
+ u'manchest',
+ u'unit',
+ u'move']
+</code></pre></div> <p>The information retrieval engine has worked quite well in this case. The top ranked document for the query is a snippet of the wikipedia article for Manchester United Football Club.</p> <p>On further inspection, we can see that the documents ranked lower are, for example, for The University of Manchester, or even just articles with the words ‘Manchester’ or ‘United’ in them.</p> <p>Now we can begin translating the German queries to English.</p> <h2 id="query-translation">Query Translation:</h2> <p>For translation, we’ll implement a simple word-based translation model in a noisy channel setting. This means that we’ll use both a language model over English, and a translation model.</p> <p>We’ll use a unigram language model for decoding/translation, but also create a model with trigram to test the improvement in performace).</p> <h3 id="language-model">Language Model:</h3> <p><a href="https://en.wikipedia.org/wiki/Language_model">From Wikipedia</a>: A statistical language model is a probability distribution over sequences of words. Given such a sequence, say of length m, it assigns a probability P(w1,….,wm) to the whole sequence.</p> <p>The models will be trained on the ‘bitext.en’ file, and tested on ‘newstest.en’.</p> <p>As we’ll train the model on different files, it’s obvious that we’ll run into words (unigrams) and trigrams what we hadn’t seen in the file we trained the model on. To account for these unknown information, we’ll use add-k or <a href="https://en.wikipedia.org/wiki/Additive_smoothing">laplace smoothing</a> for the unigram and <a href="https://en.wikipedia.org/wiki/Katz%27s_back-off_model">Katz-Backoff smoothing</a> for the trigram model.</p> <p>Let’s start with calculating the unigram, bigram and trigram counts (we need the bigram counts for trigram smoothing). The sentences are also converted appropriately by adding sentinels at the start and end of sentences.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Calculating the unigram, bigram and trigram counts. </span>
+
+<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">BITEXT_ENG</span><span class="p">)</span>
+
+<span class="n">train_sentences</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">train_sentences</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tokenize</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>
+
+<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>    
+
+<span class="c">#Function to mark the first occurence of words as unknown, for training.</span>
+<span class="k">def</span> <span class="nf">check_for_unk_train</span><span class="p">(</span><span class="n">word</span><span class="p">,</span><span class="n">unigram_counts</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">unigram_counts</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">word</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">unigram_counts</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="s">"UNK"</span>
+
+<span class="c">#Function to convert sentences for training the language model.    </span>
+<span class="k">def</span> <span class="nf">convert_sentence_train</span><span class="p">(</span><span class="n">sentence</span><span class="p">,</span><span class="n">unigram_counts</span><span class="p">):</span>
+    <span class="c">#&lt;s1&gt; and &lt;s2&gt; are sentinel tokens added to the start and end, for handling tri/bigrams at the start of a sentence.</span>
+    <span class="k">return</span> <span class="p">[</span><span class="s">"&lt;s1&gt;"</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s">"&lt;s2&gt;"</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">check_for_unk_train</span><span class="p">(</span><span class="n">token</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span><span class="n">unigram_counts</span><span class="p">)</span> <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">sentence</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s">"&lt;/s2&gt;"</span><span class="p">]</span><span class="o">+</span> <span class="p">[</span><span class="s">"&lt;/s1&gt;"</span><span class="p">]</span>
+
+<span class="c">#Function to obtain unigram, bigram and trigram counts.</span>
+<span class="k">def</span> <span class="nf">get_counts</span><span class="p">(</span><span class="n">sentences</span><span class="p">):</span>
+    <span class="n">trigram_counts</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">))</span>
+    <span class="n">bigram_counts</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="n">unigram_counts</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">sentence</span> <span class="ow">in</span> <span class="n">sentences</span><span class="p">:</span>
+        <span class="n">sentence</span> <span class="o">=</span> <span class="n">convert_sentence_train</span><span class="p">(</span><span class="n">sentence</span><span class="p">,</span> <span class="n">unigram_counts</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sentence</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">trigram_counts</span><span class="p">[</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]][</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="n">trigram_counts</span><span class="p">[</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">],</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">bigram_counts</span><span class="p">[</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">bigram_counts</span><span class="p">[</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">unigram_counts</span><span class="p">[</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">unigram_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">unigram_counts</span><span class="p">[</span><span class="s">"&lt;/s1&gt;"</span><span class="p">]</span> <span class="o">=</span> <span class="n">unigram_counts</span><span class="p">[</span><span class="s">"&lt;s1&gt;"</span><span class="p">]</span>
+    <span class="n">unigram_counts</span><span class="p">[</span><span class="s">"&lt;/s2&gt;"</span><span class="p">]</span> <span class="o">=</span> <span class="n">unigram_counts</span><span class="p">[</span><span class="s">"&lt;s2&gt;"</span><span class="p">]</span>
+    <span class="n">bigram_counts</span><span class="p">[</span><span class="s">"&lt;/s2&gt;"</span><span class="p">][</span><span class="s">"&lt;/s1&gt;"</span><span class="p">]</span> <span class="o">=</span> <span class="n">bigram_counts</span><span class="p">[</span><span class="s">"&lt;s1&gt;"</span><span class="p">][</span><span class="s">"&lt;s2&gt;"</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">unigram_counts</span><span class="p">,</span> <span class="n">bigram_counts</span><span class="p">,</span> <span class="n">trigram_counts</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">unigram_counts</span><span class="p">,</span> <span class="n">bigram_counts</span><span class="p">,</span><span class="n">trigram_counts</span> <span class="o">=</span> <span class="n">get_counts</span><span class="p">(</span><span class="n">train_sentences</span><span class="p">)</span>
+</code></pre></div> <p>We can calculate the <a href="https://en.wikipedia.org/wiki/Perplexity">perplexity</a> of our language models to see how well they predict a sentence.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Constructing unigram model with 'add-k' smoothing</span>
+<span class="n">token_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">unigram_counts</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+<span class="c">#Function to convert unknown words for testing. </span>
+<span class="c">#Words that don't appear in the training corpus (even if they are in the test corpus) are marked as UNK.</span>
+<span class="k">def</span> <span class="nf">check_for_unk_test</span><span class="p">(</span><span class="n">word</span><span class="p">,</span><span class="n">unigram_counts</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">unigram_counts</span> <span class="ow">and</span> <span class="n">unigram_counts</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">word</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">"UNK"</span>
+
+
+<span class="k">def</span> <span class="nf">convert_sentence_test</span><span class="p">(</span><span class="n">sentence</span><span class="p">,</span><span class="n">unigram_counts</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="s">"&lt;s1&gt;"</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s">"&lt;s2&gt;"</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">check_for_unk_test</span><span class="p">(</span><span class="n">word</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span><span class="n">unigram_counts</span><span class="p">)</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">sentence</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s">"&lt;/s2&gt;"</span><span class="p">]</span>  <span class="o">+</span> <span class="p">[</span><span class="s">"&lt;/s1&gt;"</span><span class="p">]</span>
+
+<span class="c">#Returns the log probability of a unigram, with add-k smoothing. We're taking logs to avoid probability underflow.</span>
+<span class="k">def</span> <span class="nf">get_log_prob_addk</span><span class="p">(</span><span class="n">word</span><span class="p">,</span><span class="n">unigram_counts</span><span class="p">,</span><span class="n">k</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="n">unigram_counts</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="o">+</span> <span class="n">k</span><span class="p">)</span><span class="o">/</span> \
+                    <span class="p">(</span><span class="n">token_count</span> <span class="o">+</span> <span class="n">k</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">unigram_counts</span><span class="p">)))</span>
+
+<span class="c">#Returns the log probability of a sentence.</span>
+<span class="k">def</span> <span class="nf">get_sent_log_prob_addk</span><span class="p">(</span><span class="n">sentence</span><span class="p">,</span> <span class="n">unigram_counts</span><span class="p">,</span><span class="n">k</span><span class="p">):</span>
+    <span class="n">sentence</span> <span class="o">=</span> <span class="n">convert_sentence_test</span><span class="p">(</span><span class="n">sentence</span><span class="p">,</span> <span class="n">unigram_counts</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">get_log_prob_addk</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">unigram_counts</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">sentence</span><span class="p">])</span>
+
+
+<span class="k">def</span> <span class="nf">calculate_perplexity_uni</span><span class="p">(</span><span class="n">sentences</span><span class="p">,</span><span class="n">unigram_counts</span><span class="p">,</span> <span class="n">token_count</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+    <span class="n">total_log_prob</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">test_token_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">sentence</span> <span class="ow">in</span> <span class="n">sentences</span><span class="p">:</span>
+        <span class="n">test_token_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sentence</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span> <span class="c"># have to consider the end token</span>
+        <span class="n">total_log_prob</span> <span class="o">+=</span> <span class="n">get_sent_log_prob_addk</span><span class="p">(</span><span class="n">sentence</span><span class="p">,</span><span class="n">unigram_counts</span><span class="p">,</span><span class="n">k</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">total_log_prob</span><span class="o">/</span><span class="n">test_token_count</span><span class="p">)</span>
+
+
+<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">NEWSTEST_ENG</span><span class="p">)</span>
+
+<span class="n">test_sents</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">test_sents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tokenize</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>
+<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre></div> <p>Now we’ll calculate the <a href="https://en.wikipedia.org/wiki/Perplexity">perplexity</a> for the model, as a measure of performance i.e. how well they predict a sentence. To find the optimum value of k, we can just calculate the perplexity multiple times with different k(s).</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Calculating the perplexity for different ks</span>
+<span class="n">ks</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0001</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ks</span><span class="p">:</span>
+    <span class="k">print</span> <span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">+</span><span class="s">": "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">calculate_perplexity_uni</span><span class="p">(</span><span class="n">test_sents</span><span class="p">,</span><span class="n">unigram_counts</span><span class="p">,</span><span class="n">token_count</span><span class="p">,</span><span class="n">k</span><span class="p">))</span>
+
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>0.0001: 613.918691403
+0.01: 614.027477551
+0.1: 615.06903252
+1: 628.823994251
+10: 823.302441447
+</code></pre></div> <p>Using add-k smoothing, perplexity for the unigram model increases with the increase in k. So 0.0001 is the best choice for k.</p> <p>Moving on to tri-grams.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Calculating the N1/N paramaters for Trigrams/Bigrams/Unigrams in Katz-Backoff Smoothing</span>
+
+<span class="n">TRI_ONES</span> <span class="o">=</span> <span class="mi">0</span> <span class="c">#N1 for Trigrams</span>
+<span class="n">TRI_TOTAL</span> <span class="o">=</span> <span class="mi">0</span> <span class="c">#N for Trigrams</span>
+
+<span class="k">for</span> <span class="n">twod</span> <span class="ow">in</span> <span class="n">trigram_counts</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">oned</span> <span class="ow">in</span> <span class="n">twod</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">oned</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">val</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">TRI_ONES</span><span class="o">+=</span><span class="mi">1</span> <span class="c">#Count of trigram seen once</span>
+            <span class="n">TRI_TOTAL</span> <span class="o">+=</span> <span class="mi">1</span> <span class="c">#Count of all trigrams seen</span>
+
+<span class="n">BI_ONES</span> <span class="o">=</span> <span class="mi">0</span> <span class="c">#N1 for Bigrams</span>
+<span class="n">BI_TOTAL</span> <span class="o">=</span> <span class="mi">0</span> <span class="c">#N for Bigrams</span>
+
+<span class="k">for</span> <span class="n">oned</span> <span class="ow">in</span> <span class="n">bigram_counts</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">oned</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">val</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">BI_ONES</span> <span class="o">+=</span> <span class="mi">1</span> <span class="c">#Count of bigram seen once</span>
+        <span class="n">BI_TOTAL</span> <span class="o">+=</span> <span class="mi">1</span> <span class="c">#Count of all bigrams seen</span>
+        
+<span class="n">UNI_ONES</span> <span class="o">=</span> <span class="n">unigram_counts</span><span class="o">.</span><span class="n">values</span><span class="p">()</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">UNI_TOTAL</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unigram_counts</span><span class="p">)</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Constructing trigram model with backoff smoothing</span>
+
+<span class="n">TRI_ALPHA</span> <span class="o">=</span> <span class="n">TRI_ONES</span><span class="o">/</span><span class="n">TRI_TOTAL</span> <span class="c">#Alpha parameter for trigram counts</span>
+    
+<span class="n">BI_ALPHA</span> <span class="o">=</span> <span class="n">BI_ONES</span><span class="o">/</span><span class="n">BI_TOTAL</span> <span class="c">#Alpha parameter for bigram counts</span>
+
+<span class="n">UNI_ALPHA</span> <span class="o">=</span> <span class="n">UNI_ONES</span><span class="o">/</span><span class="n">UNI_TOTAL</span>
+    
+<span class="k">def</span> <span class="nf">get_log_prob_back</span><span class="p">(</span><span class="n">sentence</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">unigram_counts</span><span class="p">,</span><span class="n">bigram_counts</span><span class="p">,</span><span class="n">trigram_counts</span><span class="p">,</span><span class="n">token_count</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">trigram_counts</span><span class="p">[</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">2</span><span class="p">]][</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">TRI_ALPHA</span><span class="p">)</span><span class="o">*</span><span class="n">trigram_counts</span><span class="p">[</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">2</span><span class="p">]][</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">/</span><span class="n">bigram_counts</span><span class="p">[</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">2</span><span class="p">]][</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">bigram_counts</span><span class="p">[</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="mi">0</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">TRI_ALPHA</span><span class="o">*</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">BI_ALPHA</span><span class="p">)</span><span class="o">*</span><span class="n">bigram_counts</span><span class="p">[</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]][</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">/</span><span class="n">unigram_counts</span><span class="p">[</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">TRI_ALPHA</span><span class="o">*</span><span class="n">BI_ALPHA</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">UNI_ALPHA</span><span class="p">)</span><span class="o">*</span><span class="p">((</span><span class="n">unigram_counts</span><span class="p">[</span><span class="n">sentence</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">+</span><span class="mf">0.0001</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">token_count</span><span class="o">+</span><span class="p">(</span><span class="mf">0.0001</span><span class="p">)</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">unigram_counts</span><span class="p">))))</span> 
+        
+        
+<span class="k">def</span> <span class="nf">get_sent_log_prob_back</span><span class="p">(</span><span class="n">sentence</span><span class="p">,</span> <span class="n">unigram_counts</span><span class="p">,</span> <span class="n">bigram_counts</span><span class="p">,</span><span class="n">trigram_counts</span><span class="p">,</span> <span class="n">token_count</span><span class="p">):</span>
+    <span class="n">sentence</span> <span class="o">=</span> <span class="n">convert_sentence_test</span><span class="p">(</span><span class="n">sentence</span><span class="p">,</span> <span class="n">unigram_counts</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">get_log_prob_back</span><span class="p">(</span><span class="n">sentence</span><span class="p">,</span><span class="n">i</span><span class="p">,</span> <span class="n">unigram_counts</span><span class="p">,</span><span class="n">bigram_counts</span><span class="p">,</span><span class="n">trigram_counts</span><span class="p">,</span><span class="n">token_count</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">sentence</span><span class="p">))])</span>
+
+
+<span class="k">def</span> <span class="nf">calculate_perplexity_tri</span><span class="p">(</span><span class="n">sentences</span><span class="p">,</span><span class="n">unigram_counts</span><span class="p">,</span><span class="n">bigram_counts</span><span class="p">,</span><span class="n">trigram_counts</span><span class="p">,</span> <span class="n">token_count</span><span class="p">):</span>
+    <span class="n">total_log_prob</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">test_token_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">sentence</span> <span class="ow">in</span> <span class="n">sentences</span><span class="p">:</span>
+        <span class="n">test_token_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sentence</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span> <span class="c"># have to consider the end token</span>
+        <span class="n">total_log_prob</span> <span class="o">+=</span> <span class="n">get_sent_log_prob_back</span><span class="p">(</span><span class="n">sentence</span><span class="p">,</span><span class="n">unigram_counts</span><span class="p">,</span><span class="n">bigram_counts</span><span class="p">,</span><span class="n">trigram_counts</span><span class="p">,</span><span class="n">token_count</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">total_log_prob</span><span class="o">/</span><span class="n">test_token_count</span><span class="p">)</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Calculating the perplexity </span>
+<span class="n">calculate_perplexity_tri</span><span class="p">(</span><span class="n">test_sents</span><span class="p">,</span><span class="n">unigram_counts</span><span class="p">,</span><span class="n">bigram_counts</span><span class="p">,</span><span class="n">trigram_counts</span><span class="p">,</span><span class="n">token_count</span><span class="p">)</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>461.64686176451505
+</code></pre></div> <p>For unigram language model, the perplexity for different values of k were as follows:</p> <table> <tr> <th>k</th> <th>Perplexity</th> </tr> <tr> <td>0.0001</td> <td>613.92</td> </tr> <tr> <td>0.01</td> <td>614.03</td> </tr> <tr> <td>0.1</td> <td>628.82</td> </tr> <tr> <td>1</td> <td>823.302</td> </tr> </table> <p>For tri-gram model, Katz-Backoff smoothing was chosen as it takes a discounted probability for things only seen once, and backs off to a lower level n-gram for unencountered n-grams.</p> <p>Compared with the trigram model, the perplexity was as follows:</p> <table> <tr> <th>Model</th> <th>Perplexity</th> </tr> <tr> <td>Unigram (Best K)</td> <td>613.92</td> </tr> <tr> <td>Trigram (Katz Backoff)</td> <td>461.65</td> </tr> </table> <p>As can be seen, the trigram model with ‘Katz Backoff’ smoothing seems to perform better than the best unigram model (with k = 0.0001). Thus we can say that this model is better for predicting the sequence of a sentence than unigram, which should is obvious if you think about it.</p> <h3 id="translation-model">Translation model</h3> <p>Next, we’ll estimate translation model probabilities. For this, we’ll use IBM1 from the NLTK library. IBM1 learns word based translation probabilities using expectation maximisation.</p> <p>We’ll use both ‘bitext.de’ and ‘bitext.en’ files for this purpose; extract the sentences from each, and then use IBM1 to build the translation tables.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Creating lists of English and German sentences from bitext.</span>
+
+<span class="kn">from</span> <span class="nn">nltk.translate</span> <span class="kn">import</span> <span class="n">IBMModel1</span>
+<span class="kn">from</span> <span class="nn">nltk.translate</span> <span class="kn">import</span> <span class="n">AlignedSent</span><span class="p">,</span> <span class="n">Alignment</span>
+
+<span class="n">eng_sents</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">de_sents</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">BITEXT_ENG</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">terms</span> <span class="o">=</span> <span class="n">tokenize</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="n">eng_sents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">terms</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">BITEXT_DE</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">terms</span> <span class="o">=</span> <span class="n">tokenize</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="n">de_sents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">terms</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Zipping together the bitexts for easier access</span>
+<span class="n">paral_sents</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">eng_sents</span><span class="p">,</span><span class="n">de_sents</span><span class="p">)</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Building English to German translation table for words (Backward alignment)</span>
+<span class="n">eng_de_bt</span> <span class="o">=</span> <span class="p">[</span><span class="n">AlignedSent</span><span class="p">(</span><span class="n">E</span><span class="p">,</span><span class="n">G</span><span class="p">)</span> <span class="k">for</span> <span class="n">E</span><span class="p">,</span><span class="n">G</span> <span class="ow">in</span> <span class="n">paral_sents</span><span class="p">]</span>
+<span class="n">eng_de_m</span> <span class="o">=</span> <span class="n">IBMModel1</span><span class="p">(</span><span class="n">eng_de_bt</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Building German to English translation table for words (Backward alignment)</span>
+<span class="n">de_eng_bt</span> <span class="o">=</span> <span class="p">[</span><span class="n">AlignedSent</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">E</span><span class="p">)</span> <span class="k">for</span> <span class="n">E</span><span class="p">,</span><span class="n">G</span> <span class="ow">in</span> <span class="n">paral_sents</span><span class="p">]</span>
+<span class="n">de_eng_m</span> <span class="o">=</span> <span class="n">IBMModel1</span><span class="p">(</span><span class="n">de_eng_bt</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+</code></pre></div> <p>We can take the intersection of the dual alignments to obtain a combined alignment for each sentence in the bitext.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Script below to combine alignments using set intersections</span>
+<span class="n">combined_align</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">eng_de_bt</span><span class="p">)):</span>
+
+    <span class="n">forward</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">eng_de_bt</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">alignment</span><span class="p">}</span>
+    <span class="n">back_reversed</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">de_eng_bt</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">alignment</span><span class="p">}</span>
+    
+    <span class="n">combined_align</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">forward</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">back_reversed</span><span class="p">))</span>
+</code></pre></div> <p>Now we can create translation dictionaries in both English to German, and German to English directions.</p> <p>Creating dictionaries for occurence counts first.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Creating German to English dictionary with occurence count of word pairs</span>
+<span class="n">de_eng_count</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">de_eng_bt</span><span class="p">)):</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">combined_align</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+        <span class="n">de_eng_count</span><span class="p">[</span><span class="n">de_eng_bt</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">words</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]]][</span><span class="n">de_eng_bt</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">mots</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]]]</span> <span class="o">=</span>  <span class="n">de_eng_count</span><span class="p">[</span><span class="n">de_eng_bt</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">words</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">de_eng_bt</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">mots</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Creating a English to German dict with occ count of word pais</span>
+<span class="n">eng_de_count</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">eng_de_bt</span><span class="p">)):</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">combined_align</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+        <span class="n">eng_de_count</span><span class="p">[</span><span class="n">eng_de_bt</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">words</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]]][</span><span class="n">eng_de_bt</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">mots</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]]]</span> <span class="o">=</span>  <span class="n">eng_de_count</span><span class="p">[</span><span class="n">eng_de_bt</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">words</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eng_de_bt</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">mots</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+</code></pre></div> <p>Creating dictionaries for translation probabilities.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Creating German to English table with word translation probabilities</span>
+<span class="n">de_eng_prob</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">de</span> <span class="ow">in</span> <span class="n">de_eng_count</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">eng</span> <span class="ow">in</span> <span class="n">de_eng_count</span><span class="p">[</span><span class="n">de</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">de_eng_prob</span><span class="p">[</span><span class="n">de</span><span class="p">][</span><span class="n">eng</span><span class="p">]</span> <span class="o">=</span> <span class="n">de_eng_count</span><span class="p">[</span><span class="n">de</span><span class="p">][</span><span class="n">eng</span><span class="p">]</span><span class="o">/</span><span class="nb">sum</span><span class="p">(</span><span class="n">de_eng_count</span><span class="p">[</span><span class="n">de</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Creating English to German dict with word translation probabilities </span>
+<span class="n">eng_de_prob</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">eng</span> <span class="ow">in</span> <span class="n">eng_de_count</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">de</span> <span class="ow">in</span> <span class="n">eng_de_count</span><span class="p">[</span><span class="n">eng</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">eng_de_prob</span><span class="p">[</span><span class="n">eng</span><span class="p">][</span><span class="n">de</span><span class="p">]</span> <span class="o">=</span> <span class="n">eng_de_count</span><span class="p">[</span><span class="n">eng</span><span class="p">][</span><span class="n">de</span><span class="p">]</span><span class="o">/</span><span class="nb">sum</span><span class="p">(</span><span class="n">eng_de_count</span><span class="p">[</span><span class="n">eng</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+</code></pre></div> <p>Let’s look at some examples of translating individual words from German to English.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Examples of translating individual words from German to English</span>
+<span class="k">print</span> <span class="n">de_eng_prob</span><span class="p">[</span><span class="s">'frage'</span><span class="p">]</span>
+
+<span class="k">print</span> <span class="n">de_eng_prob</span><span class="p">[</span><span class="s">'handlung'</span><span class="p">]</span>
+
+<span class="k">print</span> <span class="n">de_eng_prob</span><span class="p">[</span><span class="s">'haus'</span><span class="p">]</span>
+
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="err">'question':</span><span class="w"> </span><span class="err">0.970873786407767,</span><span class="w"> </span><span class="err">'issue':</span><span class="w"> </span><span class="err">0.019417475728155338,</span><span class="w"> </span><span class="err">'matter':</span><span class="w"> </span><span class="err">0.009708737864077669</span><span class="p">}</span><span class="w">
+</span><span class="p">{</span><span class="err">'rush':</span><span class="w"> </span><span class="err">1.0</span><span class="p">}</span><span class="w">
+</span><span class="p">{</span><span class="err">'begins':</span><span class="w"> </span><span class="err">0.058823529411764705,</span><span class="w"> </span><span class="err">'house':</span><span class="w"> </span><span class="err">0.9411764705882353</span><span class="p">}</span><span class="w">
+</span></code></pre></div> <p>Building the noisy channel translation model, which uses the english to german translation dictionary and the unigram language model to add “noise”.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Building noisy channel translation model</span>
+<span class="k">def</span> <span class="nf">de_eng_noisy</span><span class="p">(</span><span class="n">german</span><span class="p">):</span>
+    <span class="n">noisy</span><span class="o">=</span><span class="p">{}</span>
+    <span class="k">for</span> <span class="n">eng</span> <span class="ow">in</span> <span class="n">de_eng_prob</span><span class="p">[</span><span class="n">german</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">noisy</span><span class="p">[</span><span class="n">eng</span><span class="p">]</span> <span class="o">=</span> <span class="n">eng_de_prob</span><span class="p">[</span><span class="n">eng</span><span class="p">][</span><span class="n">german</span><span class="p">]</span><span class="o">+</span> <span class="n">get_log_prob_addk</span><span class="p">(</span><span class="n">eng</span><span class="p">,</span><span class="n">unigram_counts</span><span class="p">,</span><span class="mf">0.0001</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">noisy</span>
+</code></pre></div> <p>Let’s check out the translation using the noise channel approach.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Test block to check alignments</span>
+<span class="k">print</span> <span class="n">de_eng_noisy</span><span class="p">(</span><span class="s">'vater'</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">de_eng_noisy</span><span class="p">(</span><span class="s">'haus'</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">de_eng_noisy</span><span class="p">(</span><span class="s">'das'</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">de_eng_noisy</span><span class="p">(</span><span class="s">'entschuldigung'</span><span class="p">)</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="err">'father':</span><span class="w"> </span><span class="err">-8.798834996562721</span><span class="p">}</span><span class="w">
+</span><span class="p">{</span><span class="err">'begins':</span><span class="w"> </span><span class="err">-10.2208672198799,</span><span class="w"> </span><span class="err">'house':</span><span class="w"> </span><span class="err">-8.163007778647888</span><span class="p">}</span><span class="w">
+</span><span class="p">{</span><span class="err">'this':</span><span class="w"> </span><span class="err">-5.214590799418497,</span><span class="w"> </span><span class="err">'the':</span><span class="w"> </span><span class="err">-3.071527829335362,</span><span class="w"> </span><span class="err">'that':</span><span class="w"> </span><span class="err">-4.664995720177421</span><span class="p">}</span><span class="w">
+</span><span class="p">{</span><span class="err">'excuse':</span><span class="w"> </span><span class="err">-11.870404868087332,</span><span class="w"> </span><span class="err">'apology':</span><span class="w"> </span><span class="err">-12.39683538573032,</span><span class="w"> </span><span class="err">'comprehend':</span><span class="w"> </span><span class="err">-11.89683538573032</span><span class="p">}</span><span class="w">
+</span></code></pre></div> <p>Translations for ‘vater’, ‘hause’, ‘das’ seem to be pretty good, with the max score going to the best translation. For the word ‘entschuldigung’, the best possible translation is ‘excuse’, while ‘comprehend’ being close. But in real world use, the most common translation for ‘entschuldigung’ is ‘sorry’.</p> <p>Checking the reverse translation for ‘sorry’,</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">eng_de_prob</span><span class="p">[</span><span class="s">'sorry'</span><span class="p">]</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="err">'bereue':</span><span class="w"> </span><span class="err">1.0</span><span class="p">}</span><span class="w">
+</span></code></pre></div> <p>The word ‘bereue’, which Google translates as ‘regret’. This is one example of a ‘bad’ alignment.</p> <p>Let’s try tanslating some queries now.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Translating first 5 queries into English</span>
+
+<span class="c">#Function for direct translation</span>
+<span class="k">def</span> <span class="nf">de_eng_direct</span><span class="p">(</span><span class="n">query</span><span class="p">):</span>
+    <span class="n">query_english</span> <span class="o">=</span> <span class="p">[]</span> 
+    <span class="n">query_tokens</span> <span class="o">=</span> <span class="n">tokenize</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">query_tokens</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">query_english</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">de_eng_prob</span><span class="p">[</span><span class="n">token</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="n">de_eng_prob</span><span class="p">[</span><span class="n">token</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">))</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">query_english</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="p">)</span> <span class="c">#Returning the token itself when it cannot be found in the translation table.</span>
+            <span class="c">#query_english.append("NA") </span>
+    
+    <span class="k">return</span> <span class="s">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">query_english</span><span class="p">)</span>
+
+<span class="c">#Function for noisy channel translation</span>
+<span class="k">def</span> <span class="nf">de_eng_noisy_translate</span><span class="p">(</span><span class="n">query</span><span class="p">):</span>  
+    <span class="n">query_english</span> <span class="o">=</span> <span class="p">[]</span> 
+    <span class="n">query_tokens</span> <span class="o">=</span> <span class="n">tokenize</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">query_tokens</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">query_english</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">de_eng_noisy</span><span class="p">(</span><span class="n">token</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="n">de_eng_noisy</span><span class="p">(</span><span class="n">token</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">))</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">query_english</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="p">)</span> <span class="c">#Returning the token itself when it cannot be found in the translation table.</span>
+            <span class="c">#query_english.append("NA") </span>
+    
+    <span class="k">return</span> <span class="s">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">query_english</span><span class="p">)</span>
+            
+<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">DEVELOPMENT_QUERIES</span><span class="p">)</span>
+
+<span class="n">lno</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">plno</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="c">#Also building a dictionary of query ids and query content (only for the first 100s)</span>
+<span class="n">german_qs</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="n">test_query_trans_sents</span> <span class="o">=</span> <span class="p">[]</span> <span class="c">#Building a list for perplexity checks.</span>
+
+<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">lno</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="n">query_id</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">'</span><span class="se">\t</span><span class="s">'</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">query_german</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">'</span><span class="se">\t</span><span class="s">'</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>  
+    
+    <span class="n">german_qs</span><span class="p">[</span><span class="n">query_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">query_german</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    
+    <span class="n">translation</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">de_eng_noisy_translate</span><span class="p">(</span><span class="n">query_german</span><span class="p">))</span>
+ 
+    <span class="k">if</span> <span class="n">plno</span><span class="o">&lt;</span><span class="mi">5</span><span class="p">:</span>
+        <span class="k">print</span> <span class="n">query_id</span> <span class="o">+</span> <span class="s">"</span><span class="se">\n</span><span class="s">"</span> <span class="o">+</span> <span class="s">"German: "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">query_german</span><span class="p">)</span> <span class="o">+</span> <span class="s">"</span><span class="se">\n</span><span class="s">"</span> <span class="o">+</span> <span class="s">"English: "</span> <span class="o">+</span> <span class="n">translation</span> <span class="o">+</span><span class="s">"</span><span class="se">\n\n</span><span class="s">"</span>
+        <span class="n">plno</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="n">test_query_trans_sents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">translation</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">lno</span><span class="o">==</span><span class="mi">100</span><span class="p">:</span>
+        <span class="k">break</span>
+
+<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>82
+German: der ( von engl . action : tat , handlung , bewegung ) ist ein filmgenre des unterhaltungskinos , in welchem der fortgang der äußeren handlung von zumeist spektakulär inszenierten kampf - und gewaltszenen vorangetrieben und illustriert wird .
+
+English: the ( , guises . action : indeed , rush , movement ) is a filmgenre the unterhaltungskinos , in much the fortgang the external rush , zumeist spektakul\xe4r inszenierten fight - and gewaltszenen pushed and illustriert will .
+
+
+116
+German: die ( einheitenzeichen : u für unified atomic mass unit , veraltet amu für atomic mass unit ) ist eine maßeinheit der masse .
+
+English: the ( einheitenzeichen : u for unified atomic mass unit , obsolete amu for atomic mass unit ) is a befuddled the mass .
+
+
+240
+German: der von lateinisch actualis , " wirklich " , auch aktualitätsprinzip , uniformitäts - oder gleichförmigkeitsprinzip , englisch uniformitarianism , ist die grundlegende wissenschaftliche methode in der .
+
+English: the , lateinisch actualis , `` really `` , , aktualit\xe4tsprinzip , uniformit\xe4ts - or gleichf\xf6rmigkeitsprinzip , english uniformitarianism , is the fundamental scientific method in the .
+
+
+320
+German: die ( griechisch el , von altgriechisch grc , - " zusammen - " , " anbinden " , gemeint ist " die herzbeutel angehängte " ) , ist ein blutgefäß , welches das blut vom herz wegführt .
+
+English: the ( griechisch el , , altgriechisch grc , - `` together - `` , `` anbinden `` , meant is `` the herzbeutel angeh\xe4ngte `` ) , is a blutgef\xe4\xdf , welches the blood vom heart wegf\xfchrt .
+
+
+540
+German: unter der bezeichnung fasst man die drei im nördlichen alpenvorland liegenden gewässereinheiten obersee , untersee und seerhein zusammen .
+
+English: under the bezeichnung summarizes one the three , northern alpenvorland liegenden gew\xe4ssereinheiten obersee , untersee and seerhein together .
+</code></pre></div> <p>The translations of the first 5 queries according to Google translate are as follows:</p> <p>82 of ( . Of eng action : act, action , movement, ) is a film genre of entertainment cinema , in which the continued transition of the external action of mostly spectacularly staged battle - and violent scenes is advanced and illustrated .</p> <p>116 ( unit sign : u for unified atomic mass unit , amu outdated for atomic mass unit ) is a unit of measure of mass .</p> <p>240 of actualis from Latin , “real” , even actuality principle , uniformity - or gleichförmigkeitsprinzip , English uniformitarianism , is the basic scientific method in .</p> <p>320 (Greek el , from Ancient Greek grc , - “ together - “ , “ tie “ , is meant “ the heart bag attached” ) is a blood vessel that leads away the blood from the heart .</p> <p>540 under the designation one summarizes the three lying in the northern waters alpenvorland units obersee , subsea and Seerhein together .</p> <hr /> <p>Translations obtained through Google Translate are obviously better. It’s interesting to note that our own translation engine works well if a ‘word-word’ translation is considered, and if the word-pair has been encountered enough times in the bi-lingual corpora.</p> <p>Google Translate also seems to perform better as it’s considering phrase based translation, which is more sophisticated and accurate than word-word translation.</p> <p>Our engine also seems to work better for function words rather than content words as those would have been the one encountered a lot in the bi-corpora and are better aligned.</p> <p>The alignments were combined by taking the intersection of the forward and reverse alignments in this case. Combining the two alignments improved things in the sense that the intersection got rid of all the extra ‘noise’ in the alignments, so that the most likely ones remained (that existed both in the forward and reverse direction).</p> <h3 id="combining-and-evaluation">Combining, and Evaluation</h3> <p>For the final bit, we’ll create a function that translates a query, and retrieves the relevant documents for it.</p> <p>Then, to evaluate the results of our CLIR engine, we’ll use the <a href="https://www.youtube.com/watch?v=pM6DJ0ZZee0">Mean Average Precision</a> to judge the performance of the CLIR system. MAP is a standard evaluation metric used in IR.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Building a dictionary for queryids and relevant document ids</span>
+<span class="n">qrel</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+
+<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">DEVELOPMENT_QREL</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">item</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">'</span><span class="se">\t</span><span class="s">'</span><span class="p">)</span>
+    <span class="n">qrel</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    
+<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Single function to retreive documents for a German query</span>
+<span class="k">def</span> <span class="nf">trans_retr_docs</span><span class="p">(</span><span class="n">german_query</span><span class="p">,</span><span class="n">no_of_results</span><span class="p">,</span><span class="n">translation_function</span><span class="p">):</span>
+    
+    <span class="n">trans_query</span> <span class="o">=</span> <span class="s">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">extract_and_tokenize_terms</span><span class="p">(</span><span class="n">translation_function</span><span class="p">(</span><span class="n">german_query</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">retr_docs</span><span class="p">(</span><span class="n">trans_query</span><span class="p">,</span><span class="n">no_of_results</span><span class="p">)]</span> <span class="c">#Retriving 100 documents</span>
+
+<span class="c">#Calculating the map score</span>
+<span class="k">def</span> <span class="nf">calc_map</span><span class="p">(</span><span class="n">no_of_results</span><span class="p">,</span><span class="n">translation_function</span><span class="p">):</span>
+    
+    <span class="n">average_precision</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">for</span> <span class="n">gq</span> <span class="ow">in</span> <span class="n">german_qs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        
+        <span class="n">relevant_docs</span> <span class="o">=</span> <span class="n">qrel</span><span class="p">[</span><span class="n">gq</span><span class="p">]</span>
+        <span class="n">incremental_precision</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">resulting_docs</span> <span class="o">=</span> <span class="n">trans_retr_docs</span><span class="p">(</span><span class="n">german_qs</span><span class="p">[</span><span class="n">gq</span><span class="p">],</span><span class="n">no_of_results</span><span class="p">,</span><span class="n">translation_function</span><span class="p">)</span>
+        
+        <span class="n">total_counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">true_positive_counter</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">resulting_docs</span><span class="p">:</span>
+            <span class="n">total_counter</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">relevant_docs</span><span class="p">:</span>
+                <span class="n">true_positive_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">incremental_precision</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">true_positive_counter</span><span class="o">/</span><span class="n">total_counter</span><span class="p">)</span>
+        
+        <span class="c">#For no relevant retreivals, the average precision will be considered 0.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">average_precision</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">incremental_precision</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">incremental_precision</span><span class="p">))</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">average_precision</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        
+    <span class="k">return</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">average_precision</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">average_precision</span><span class="p">))</span>
+</code></pre></div> <p>To keep runtime at a minimum, we’ll only consider the top 100 returned results (documents) when</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Printing the map score for direct translations</span>
+<span class="k">print</span> <span class="n">calc_map</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="n">de_eng_direct</span><span class="p">)</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>0.356571675599
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="c">#Printing the map score for noisy channel translations</span>
+<span class="k">print</span> <span class="n">calc_map</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="n">de_eng_noisy_translate</span><span class="p">)</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>0.364795198505
+</code></pre></div> <p>With that, our basic CLIR system is complete. Improvements could be made, expecially in the translation component by using a phrase based model. Or we could use Google to translate the queries for us, and see how well the IR system performs. But that’s another area of exploration.</p> </div> <hr> <div class="back-to-top"> <i class="fa fa-arrow-circle-up fa-2x animated infinite pulse" aria-hidden="true"></i> </div> <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script> </div> </div> <label for="sidebar-checkbox" class="sidebar-toggle"></label> <script> (function(document) { var toggle = document.querySelector('.sidebar-toggle'); var sidebar = document.querySelector('#sidebar'); var checkbox = document.querySelector('#sidebar-checkbox'); document.addEventListener('click', function(e) { var target = e.target; if(!checkbox.checked || sidebar.contains(target) || (target === checkbox || target === toggle)) return; checkbox.checked = false; }, false); })(document); </script> <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"> </script> <script> $(".back-to-top i").click(function(){ $('body,html').animate({ scrollTop: 0 }, 2000); }); </script> </body> </html>
