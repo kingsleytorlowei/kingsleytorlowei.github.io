@@ -1,0 +1,154 @@
+<!DOCTYPE html> <html lang="en-us"> <head> <link href="http://gmpg.org/xfn/11" rel="profile"> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <meta http-equiv="content-type" content="text/html; charset=utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"> <title> Behavioral Risk Factor Surveillance System 2013 Exploratory Data Analysis &middot; Kingsley Torlowei </title> <script> (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){ (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o), m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m) })(window,document,'script','https://www.google-analytics.com/analytics.js','ga'); ga('create', 'UA-28655816-2', 'auto'); ga('send', 'pageview'); </script> <link type="text/css" rel="stylesheet" href="/assets/main.css"> <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-precomposed.png"> <link rel="shortcut icon" type="image/png" href="/public/favicon.png"> <link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml"> <title>Behavioral Risk Factor Surveillance System 2013 Exploratory Data Analysis | Kingsley Torlowei</title> <meta property="og:title" content="Behavioral Risk Factor Surveillance System 2013 Exploratory Data Analysis" /> <meta name="author" content="Kingsley Torlowei" /> <meta property="og:locale" content="en_US" /> <meta name="description" content="Analysis of the BRFSS-2013 data set using R, focusing on investigating the relationship between education and eating habits, sleep and mental health, and smoking, drinking and general health of a person." /> <meta property="og:description" content="Analysis of the BRFSS-2013 data set using R, focusing on investigating the relationship between education and eating habits, sleep and mental health, and smoking, drinking and general health of a person." /> <link rel="canonical" href="http://kingsleytorlowei.github.io/portfolio/brfss2013_eda" /> <meta property="og:url" content="http://kingsleytorlowei.github.io/portfolio/brfss2013_eda" /> <meta property="og:site_name" content="Kingsley Torlowei" /> <script type="application/ld+json"> {"@context":"http://schema.org","@type":"WebPage","headline":"Behavioral Risk Factor Surveillance System 2013 Exploratory Data Analysis","author":{"@type":"Person","name":"Kingsley Torlowei"},"description":"Analysis of the BRFSS-2013 data set using R, focusing on investigating the relationship between education and eating habits, sleep and mental health, and smoking, drinking and general health of a person.","url":"http://kingsleytorlowei.github.io/portfolio/brfss2013_eda"}</script> </head> <body> <input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox"> <div class="sidebar" id="sidebar"> <div class="sidebar-item"> <div> <img src="/public/biopic.jpg"> </div> <p>Welcome to the internet home of <a href="http://Kingsleytorlowei.com">Kingsley Torlowei</a>. Data Scientist, Software Engineer. </p> <p>Feel free to look around, check out my portfolio, or get in touch.</p> <div class="social-icons"> <a href="https://www.linkedin.com/in/kingsleytorlowei" target="_blank"><i class="fa fa-linkedin-square fa-2x" aria-hidden="true"></i></a> <a href="https://github.com/kingsleytorlowei" target="_blank"><i class="fa fa-github fa-2x" aria-hidden="true"></i></a> <a href="https://twitter.com/__Kingsley"><i class="fa fa-twitter fa-2x" aria-hidden="true"></i></a> </div> </div> <nav class="sidebar-nav"> <a class="sidebar-nav-item" href="/">Home</a> <a class="sidebar-nav-item" href="/portfolio">Portfolio</a> <a class="sidebar-nav-item" href="/about">About</a> <a class="sidebar-nav-item" href="/resume">Resume</a> <span class="sidebar-nav-item">Currently v1.0.1</span> </nav> <div class="sidebar-item"> <p>Built with <i class="fa fa-heart" aria-hidden="true"></i> + <a href="http://www.jekyllrb.com">Jekyll</a>.</p> <p> &copy; 2018 Kingsley Torlowei. All rights reserved. </p> </div> </div> <div class="wrap"> <div class="masthead"> <div class="container"> </div> </div> <div class="container content"> <div class="notebook"> <h1 class="notebook-title">Behavioral Risk Factor Surveillance System 2013 Exploratory Data Analysis</h1> <div class="project-skills"> Skills: Descriptive Statistics, R, ggplot, dplyr </div> <a target="_blank" href=http://rpubs.com/sajal_sharma/brfss2013>RPubs</a> <hr /> <p>In this project, we carry out exploratory analysis of the BRFSS-2013 data set by setting out research questions, and then exploring relationship between identified variables to answer those questions. To know more about BRFSS and the dataset, visit <a href="http://www.cdc.gov/brfss/">this link</a>.</p> <p><em>The project was completed as a part of Duke University’s ‘Introduction to Probability and Data’ online course on Coursera, the first of the Statistics with R Specialization.</em></p> <h2 id="setup">Setup</h2> <p><strong>Load packages</strong></p> <div class="highlighter-rouge"><pre class="highlight"><code>library(ggplot2)
+library(dplyr)
+</code></pre></div> <p><strong>Load data</strong></p> <div class="highlighter-rouge"><pre class="highlight"><code>load("brfss2013.RData")
+</code></pre></div> <hr /> <h2 id="the-data">The Data</h2> <p>The BRFSS-2013 dataset was sampled from the non-institutionalised adult population (i.e. 18 years and older) residing in the US. The data was collected through landline and cellular-telephone based surveys.</p> <p>Disproportionate stratified sampling, which is more efficient than simple random sampling, was used for the landline sample (<a href="http://www.cdc.gov/brfss/data_documentation/pdf/userguidejune2013.pdf">source</a>). The cellular sample was generated from randomly selected respondents, with an equal probability of selection.</p> <p>As random sampling was used for both data collection methods, the data for the sample is generalizable to the population. On the other hand, as this is an observational study, it won’t be possible to make causal inferences from the data.</p> <hr /> <h2 id="research-questions">Research questions</h2> <p><strong>Research question 1:</strong></p> <p>Are non-smoking heavy drinkers, generally healthier than regular smokers, who are not heavy drinkers?</p> <p>While researching this, we’re trying to explore the impact of consuming alcohol vs smoking tobacco on a person’s health and see which is worse.</p> <p><strong>Research question 2:</strong></p> <p>Do people who sleep fewer hours than average person, also have more than days with poor mental health?</p> <p>Research has suggested that inadequate sleep has a negative effect on a person’s overall health. Here we try to determine if it also has a negative effect on their mental health.</p> <p><strong>Research question 3:</strong></p> <p>Are people who have completed higher levels of education, more likely to consume fruits and vegetables once or more in a day?</p> <p>We might assume that educated people live a healthier lifestyle i.e. exercising or eating nutritious food. We’ll try and figure out if that’s the case here by comparing education levels with fruit and vegetable consumption.</p> <hr /> <h2 id="exploratory-data-analysis">Exploratory data analysis</h2> <h3 id="research-question-1">Research question 1:</h3> <p>Are non-smoking heavy drinkers, generally healthier than regular smokers, who are not heavy drinkers?</p> <p>We’ll be using the following variables for this question:</p> <ul> <li>genhlth: Respondent’s health, in general</li> <li>_rfsmok3: Is the respondent a current smoker?</li> <li>_rfdrhv4: Is the respondent a heavy drinker?</li> </ul> <p>Type of the variables we’re dealing with:</p> <div class="highlighter-rouge"><pre class="highlight"><code>str(select(brfss2013,genhlth,X_rfsmok3,X_rfdrhv4))
+
+## 'data.frame':    491775 obs. of  3 variables:
+##  $ genhlth  : Factor w/ 5 levels "Excellent","Very good",..: 4 3 3 2 3 2 4 3 1 3 ...
+##  $ X_rfsmok3: Factor w/ 2 levels "No","Yes": 1 1 2 1 1 1 1 2 1 1 ...
+##  $ X_rfdrhv4: Factor w/ 2 levels "No","Yes": 1 1 2 1 1 1 1 1 1 1 ...
+</code></pre></div> <p>All of the above are categorical variable. General health of a person is defined in 5 levels, while a person is or isn’t a heavy drinker or a smoker.</p> <p>To begin, let’s check out our selected variables individually.</p> <p><strong>genhlth: General Health</strong></p> <div class="highlighter-rouge"><pre class="highlight"><code>total_obs &lt;- nrow(brfss2013)
+
+
+brfss2013 %&gt;%
+  group_by(genhlth) %&gt;%
+  summarise(count=n(),percentage=n()*100/total_obs)
+
+## # A tibble: 6 × 3
+##     genhlth  count percentage
+##      &lt;fctr&gt;  &lt;int&gt;      &lt;dbl&gt;
+## 1 Excellent  85482 17.3823395
+## 2 Very good 159076 32.3473133
+## 3      Good 150555 30.6146103
+## 4      Fair  66726 13.5684002
+## 5      Poor  27951  5.6836968
+## 6        NA   1985  0.4036399
+
+ggplot(brfss2013, aes(x=genhlth)) + geom_bar() + ggtitle('General Health of Respondents') + xlab('General Health') + theme_bw()
+</code></pre></div> <p><img src="/public/project-images/brfss2013/unnamed-chunk-3-1.png" alt="png" /></p> <p>Around 80% of the respondents in our dataset are in good health or better, and most of the people have ‘Very good’ health. There are some missing (NA) values too which we’ll deal with later as they don’t make much sense with our analysis.</p> <p><strong>_rfsmok3: Currently a smoker?</strong></p> <p>According to the codebook, respondents who have replied ‘Yes’, now smoke every day or some days; while those who replied ‘No’ have either never smoked in their lifetimes or don’t smoke now.</p> <div class="highlighter-rouge"><pre class="highlight"><code>brfss2013 %&gt;%
+  group_by(X_rfsmok3) %&gt;%
+  summarise(count=n(),percentage=n()*100/total_obs)
+
+## # A tibble: 3 × 3
+##   X_rfsmok3  count percentage
+##      &lt;fctr&gt;  &lt;int&gt;      &lt;dbl&gt;
+## 1        No 399786  81.294494
+## 2       Yes  76654  15.587210
+## 3        NA  15335   3.118296
+
+ggplot(brfss2013, aes(x=X_rfsmok3)) + geom_bar() + ggtitle('Smoking Status of Respondents') + xlab('Currently a smoker?')+ theme_bw()
+</code></pre></div> <p><img src="/public/project-images/brfss2013/unnamed-chunk-5-1.png" alt="png" /></p> <p>More than 81% of the respondents are not current smokers, though they might have smoked earlier in their lifetimes.</p> <p><strong>_rfdrhv4: Heavy drinker?</strong></p> <p>The heavy drinker variable is defined as <em>adult men having more than two drinks per day and adult women having more than one drink per day)</em>.</p> <div class="highlighter-rouge"><pre class="highlight"><code>brfss2013 %&gt;%
+  group_by(X_rfdrhv4) %&gt;%
+  summarise(count=n(),percentage=n()*100/total_obs)
+
+## # A tibble: 3 × 3
+##   X_rfdrhv4  count percentage
+##      &lt;fctr&gt;  &lt;int&gt;      &lt;dbl&gt;
+## 1        No 442359  89.951502
+## 2       Yes  25533   5.192009
+## 3        NA  23883   4.856489
+
+ggplot(brfss2013, aes(x=X_rfdrhv4)) + geom_bar() + ggtitle('Drinking Habits of Respondents') + xlab('Heavy Drinker?') +theme_bw()
+</code></pre></div> <p><img src="/public/project-images/brfss2013/unnamed-chunk-7-1.png" alt="png" /></p> <p>Only about 5% of the respondends in our dataset are heavy drinkers.</p> <p>Now to answer our original question, we can make things a bit easier for ourselves by creating a new categorical variable to categorise a person as: ‘Smoker’, ‘Heavy Drinker’, ‘Both’ or ‘None.’</p> <div class="highlighter-rouge"><pre class="highlight"><code>brfss2013 &lt;- brfss2013 %&gt;%
+  mutate(smoke_alc = ifelse(X_rfdrhv4 == 'Yes',
+                            ifelse(X_rfsmok3 == 'Yes','Both','Heavy Drinker'),
+                            ifelse(X_rfsmok3 == 'Yes','Current Smoker','None')))
+</code></pre></div> <p>Let’s check out the distribution of our new variable:</p> <div class="highlighter-rouge"><pre class="highlight"><code>brfss2013 %&gt;%
+  group_by(smoke_alc) %&gt;%
+  summarise(count=n(),percentage=n()*100/total_obs)
+
+## # A tibble: 5 × 3
+##        smoke_alc  count percentage
+##            &lt;chr&gt;  &lt;int&gt;      &lt;dbl&gt;
+## 1           Both   8144   1.656042
+## 2 Current Smoker  66000  13.420772
+## 3  Heavy Drinker  17269   3.511565
+## 4           None 374377  76.127701
+## 5           &lt;NA&gt;  25985   5.283920
+
+ggplot(brfss2013,aes(x=smoke_alc)) + geom_bar() + ggtitle('Drinking and Smoking Habits of Respondents') + xlab('Drinker or Smoker?') +theme_bw()
+</code></pre></div> <p><img src="/public/project-images/brfss2013/unnamed-chunk-10-1.png" alt="png" /></p> <p>About 76% of the respondents don’t smoke or drink heavily. Around 13.4% are current smokers, and about 3.5% drink heavily. We’ll be focusing on the last two.</p> <p>A good way to represent the counts of two categorical variables is a contingency table.</p> <div class="highlighter-rouge"><pre class="highlight"><code>rq1_table &lt;- table(brfss2013$smoke_alc,brfss2013$genhlth)
+
+rq1_table
+
+##                 
+##                  Excellent Very good   Good   Fair   Poor
+##   Both                 998      2428   2957   1273    446
+##   Current Smoker      6637     17160  22372  12828   6741
+##   Heavy Drinker       4140      6729   4648   1356    349
+##   None               69056    125370 112123  47522  18884
+</code></pre></div> <p>It’s a little hard to look at the number and quickly understand what proportions of Current Smokers or Heavy Drinkers have the better health. So we’ll calculate those proportions, and make sure that the rows sum to</p> <ol> <li> <p>So we’re calculating the proportions of health across drinker or smokers.</p> <p>prop.table(rq1_table,1)</p> <p>## <br /> ## Excellent Very good Good Fair Poor ## Both 0.12317946 0.29967909 0.36497161 0.15712170 0.05504814 ## Current Smoker 0.10096139 0.26103623 0.34032067 0.19513828 0.10254343 ## Heavy Drinker 0.24039020 0.39072117 0.26988735 0.07873650 0.02026478 ## None 0.18515907 0.33615316 0.30063412 0.12742020 0.05063345</p> </li> </ol> <p>Now we have a sense of what’s going on. Let’s visualize the table through a mosaic plot.</p> <div class="highlighter-rouge"><pre class="highlight"><code>mosaicplot(prop.table(rq1_table,1),main='Drinking and/or Smoking vs General Health', xlab='Drinking and/or Smoking status', ylab='General Health')
+</code></pre></div> <p><img src="/public/project-images/brfss2013/unnamed-chunk-13-1.png" alt="png" /></p> <p>Looking at the summary statistics and the visualization, we can see that, compared to the ‘Current Smoker’ category, there is a higher proportion of ‘Heavy Drinkers’ with ‘Excellent’ or ‘Very good’ health. Even though there are proportionally more smokers with ‘Good’ health, heavy drinkers have lower ‘Fair’ or ‘Poor’ health, something we can consider below par.</p> <p>Hence, it looks like smokers have poorer health than heavy drinkers.</p> <h3 id="research-question-2">Research question 2:</h3> <p>Do people who sleep fewer hours than average person, also have more than days with poor mental health?</p> <p>For this, we have to look at the relationship between the variables:</p> <ul> <li>sleptim1: On average, the hours of sleep a person gets in a 24-hour period.</li> <li>menthlth: Out of 30, number of days the mental health of a person wasn’t good.</li> </ul> <p>Checking out the type of variab;es that we’re dealing with:</p> <div class="highlighter-rouge"><pre class="highlight"><code>str(select(brfss2013,sleptim1,menthlth))
+
+## 'data.frame':    491775 obs. of  2 variables:
+##  $ sleptim1: int  NA 6 9 8 6 8 7 6 8 8 ...
+##  $ menthlth: int  29 0 2 0 2 0 15 0 0 0 ...
+</code></pre></div> <p>Both of the above variables are continuous integers, but we can also think of time slept as a categorical variable, and then calculate the average number of days with poor mental health for a person who gets that much amount of sleep, to answer our question. We’ll do that in a bit.</p> <p><strong>sleptim1</strong></p> <p>Taking a look at how the <em>sleptim1</em> variable is distributed.</p> <div class="highlighter-rouge"><pre class="highlight"><code>ggplot(brfss2013,aes(x=sleptim1)) + geom_bar()
+
+## Warning: Removed 7387 rows containing non-finite values (stat_count).
+</code></pre></div> <p><img src="/public/project-images/brfss2013/unnamed-chunk-15-1.png" alt="png" /></p> <p>The plot extends to more than 400 on the x-axis, which is a bit suspicious. We’ll have to check for unrealistic values for <em>sleptim1</em> in our dataset. Let’s filter for observations where the time slept is above the 24 hour period.</p> <div class="highlighter-rouge"><pre class="highlight"><code>brfss2013 %&gt;%
+  filter(sleptim1&gt;24) %&gt;%
+  select(sleptim1)
+
+##   sleptim1
+## 1      103
+## 2      450
+</code></pre></div> <p>As suspected, there are two unrealistic values there, and we’ll have to filter for them when doing our analyis or visualisation. One thing we can do to avoid repeated filters for this section is to make a new <em>clean</em> dataframe.</p> <div class="highlighter-rouge"><pre class="highlight"><code>rq2_brfss2013 &lt;- brfss2013 %&gt;%
+  filter(sleptim1 &lt;= 24) 
+</code></pre></div> <p>Also, since there are only 24 (25 if you count 0) possible values for the amount of time slept, we can consider this variable as a factor. Attempting the plot again:</p> <div class="highlighter-rouge"><pre class="highlight"><code>ggplot(rq2_brfss2013,aes(x=as.factor(sleptim1))) + geom_bar() + ggtitle('Amount of Sleep of Respondents') + xlab('Hours slept') + theme_bw()
+</code></pre></div> <p><img src="/public/project-images/brfss2013/unnamed-chunk-18-1.png" alt="png" /></p> <p>Better. It looks like most people get 6-8 hours of sleep. What is the average hours of sleep for our data?</p> <div class="highlighter-rouge"><pre class="highlight"><code>rq2_brfss2013 %&gt;%
+  summarise(avg_sleep = mean(sleptim1))
+
+##   avg_sleep
+## 1  7.050986
+</code></pre></div> <p>So we can consider 7 hrs to be the optimum/average amount of sleep for our population.</p> <p><strong>menthlth</strong></p> <div class="highlighter-rouge"><pre class="highlight"><code>ggplot(rq2_brfss2013, aes(x=menthlth)) + geom_histogram() 
+
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+## Warning: Removed 7771 rows containing non-finite values (stat_bin).
+</code></pre></div> <p><img src="/public/project-images/brfss2013/unnamed-chunk-20-1.png" alt="png" /></p> <p>Looks like we might have the same problem here as with the previous variable. Removing impossible outliers:</p> <div class="highlighter-rouge"><pre class="highlight"><code>rq2_brfss2013 &lt;- rq2_brfss2013 %&gt;%
+  filter(menthlth &lt;= 30)
+
+ggplot(rq2_brfss2013, aes(x=menthlth)) + geom_histogram() + ggtitle('Mental Health of Respondents') + xlab('Number of days with poor mental health (out of 30)') + theme_bw()
+
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+</code></pre></div> <p><img src="/public/project-images/brfss2013/unnamed-chunk-22-1.png" alt="png" /></p> <p>To answer our question, we can look at the average mental health of groups of people who get different hours of sleep.</p> <div class="highlighter-rouge"><pre class="highlight"><code>slep_ment &lt;- rq2_brfss2013 %&gt;%
+ group_by(hours_slept = as.factor(sleptim1)) %&gt;%
+ summarise(avg_poor_mental = mean(menthlth), count=n()) 
+
+slep_ment
+
+## # A tibble: 24 × 3
+##    hours_slept avg_poor_mental  count
+##         &lt;fctr&gt;           &lt;dbl&gt;  &lt;int&gt;
+## 1            1       11.651376    218
+## 2            2       13.286550   1026
+## 3            3       12.265064   3369
+## 4            4        9.772228  13834
+## 5            5        6.280284  32699
+## 6            6        3.933364 104493
+## 7            7        2.206032 140794
+## 8            8        2.217405 138934
+## 9            9        2.739771  23414
+## 10          10        4.686248  11831
+## # ... with 14 more rows
+</code></pre></div> <p>Visualizing the data:</p> <div class="highlighter-rouge"><pre class="highlight"><code>ggplot(slep_ment, aes(x=hours_slept,y=avg_poor_mental)) + geom_bar(stat='identity') + ggtitle('Do people who sleep irregularly have poor mental health?') + xlab('Hours Slept') + ylab('No. of days with poor mental health (out of 30)') + theme_bw()
+</code></pre></div> <p><img src="/public/project-images/brfss2013/unnamed-chunk-24-1.png" alt="png" /></p> <p>Looking at the summary statistics and the bar graph, we can see that people who get around 6-9 hours of sleep per day have considerably lower number of days with poor mental health, though it’s even better if you get 7 or 8 hours of sleep.</p> <p>People with lesser, or even more than average hours of sleep have more days of poor mental health. The observation with 23 hours of sleep and 30 days of poor mental health is caused by outliers with scarce data, as are others, possibly.</p> <p>We can check this as well:</p> <div class="highlighter-rouge"><pre class="highlight"><code>slep_ment %&gt;%
+  filter(as.integer(hours_slept) &gt; 12)
+
+## # A tibble: 12 × 3
+##    hours_slept avg_poor_mental count
+##         &lt;fctr&gt;           &lt;dbl&gt; &lt;int&gt;
+## 1           13        9.448454   194
+## 2           14        8.567198   439
+## 3           15        8.424855   346
+## 4           16        6.719547   353
+## 5           17        8.428571    35
+## 6           18       10.318750   160
+## 7           19       10.000000    12
+## 8           20        8.548387    62
+## 9           21        7.500000     2
+## 10          22        8.200000    10
+## 11          23       30.000000     3
+## 12          24        7.218750    32
+</code></pre></div> <p>So it does seem that there is a relationship between inadequate sleep and mental health, though we cannot be absolutely sure if one directly causes the other. But, people who sleep lower or more than average, are also those who suffer from poorer mental health than those who sleep adequately.</p> <h3 id="research-question-3">Research question 3:</h3> <p>Are people who have completed higher levels of education, more likely to consume fruits and vegetables once or mor in a day?</p> <p>For this we’ll be using the following variables:</p> <ul> <li>_educag: Computed level of education completed.</li> <li>_frtlt1: Consume fruit 1 or times per day.</li> <li>_veglt1: Consume vegetables 1 or times per day.</li> </ul> <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script> </div> </div> <label for="sidebar-checkbox" class="sidebar-toggle"></label> <script> (function(document) { var toggle = document.querySelector('.sidebar-toggle'); var sidebar = document.querySelector('#sidebar'); var checkbox = document.querySelector('#sidebar-checkbox'); document.addEventListener('click', function(e) { var target = e.target; if(!checkbox.checked || sidebar.contains(target) || (target === checkbox || target === toggle)) return; checkbox.checked = false; }, false); })(document); </script> <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"> </script> <script> $(".back-to-top i").click(function(){ $('body,html').animate({ scrollTop: 0 }, 2000); }); </script> </body> </html>
