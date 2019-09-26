@@ -12,7 +12,7 @@ description: What I am and what I do.
 
 Hi, I'm Kingsley.
 
-I hail from Bayelsa, Nigeria. Though, i've spent almost all life in Lagos where I'm currently as a freelance software developer. I work with clients to bring real-time, streaming, intelligent analytics to different verticals including telecommunications, healthcare, and banking. I use statistics and machine learning to solve our customer's analytics problems, and incorporating predictive models. Being a jack of all trades, I also build front-end applications, dashboards and visualisations to help our customers interact with our data products. You do need good storytelling for good data. ;)
+I hail from Bayelsa, Nigeria. Though, i've spent almost all life in Lagos where I'm currently as a freelance software developer. I work with clients to bring real-time, streaming, intelligent analytics to different verticals including telecommunications, healthcare, and banking. I use statistics and machine learning to solve our customer's analytics problems, and incorporating predictive models. Being a jack of all trades, I also build front-end applications, dashboards and visualisations to help our customers interact with our data products.
 
 In the past I've worked as a Technical Lead in a service oriented startup, <em>JMP Resources</em> based in Abuja, Nigeria.
 

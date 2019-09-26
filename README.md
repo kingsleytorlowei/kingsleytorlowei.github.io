@@ -1,1 +1,1 @@
-under construction.
+Personal website of Kingsley Torlowei.

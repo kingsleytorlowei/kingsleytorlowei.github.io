@@ -1,0 +1,528 @@
+<!DOCTYPE html> <html lang="en-us"> <head> <link href="http://gmpg.org/xfn/11" rel="profile"> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <meta http-equiv="content-type" content="text/html; charset=utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"> <title> Sentiment Analyis on Movie Reviews &middot; Kingsley Torlowei </title> <script> (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){ (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o), m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m) })(window,document,'script','https://www.google-analytics.com/analytics.js','ga'); ga('create', 'UA-28655816-2', 'auto'); ga('send', 'pageview'); </script> <link type="text/css" rel="stylesheet" href="/assets/main.css"> <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-precomposed.png"> <link rel="shortcut icon" type="image/png" href="/public/favicon.png"> <link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml"> <title>Sentiment Analyis on Movie Reviews | Kingsley Torlowei</title> <meta property="og:title" content="Sentiment Analyis on Movie Reviews" /> <meta name="author" content="Kingsley Torlowei" /> <meta property="og:locale" content="en_US" /> <meta name="description" content="Designing and implementing deep learning models to predict the sentiment of a phrase from the Rotten Tomatoes movie review dataset." /> <meta property="og:description" content="Designing and implementing deep learning models to predict the sentiment of a phrase from the Rotten Tomatoes movie review dataset." /> <link rel="canonical" href="http://kingsleytorlowei.github.io/portfolio/Sentiment_Analysiss/Sentiment_Analysiss" /> <meta property="og:url" content="http://kingsleytorlowei.github.io/portfolio/Sentiment_Analysiss/Sentiment_Analysiss" /> <meta property="og:site_name" content="Kingsley Torlowei" /> <script type="application/ld+json"> {"@context":"http://schema.org","@type":"WebPage","headline":"Sentiment Analyis on Movie Reviews","author":{"@type":"Person","name":"Kingsley Torlowei"},"description":"Designing and implementing deep learning models to predict the sentiment of a phrase from the Rotten Tomatoes movie review dataset.","url":"http://kingsleytorlowei.github.io/portfolio/Sentiment_Analysiss/Sentiment_Analysiss"}</script> </head> <body> <input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox"> <div class="sidebar" id="sidebar"> <div class="sidebar-item"> <div> <img src="/public/biopic.jpg"> </div> <p>Welcome to the internet home of <a href="http://Kingsleytorlowei.com">Kingsley Torlowei</a>. Data Scientist, Software Engineer. </p> <p>Feel free to look around, check out my portfolio, or get in touch.</p> <div class="social-icons"> <a href="https://www.linkedin.com/in/kingsley-torlowei-18461263/" target="_blank"><i class="fa fa-linkedin-square fa-2x" aria-hidden="true"></i></a> <a href="https://github.com/kingsleytorlowei" target="_blank"><i class="fa fa-github fa-2x" aria-hidden="true"></i></a> <a href="https://twitter.com/__Kingsley"><i class="fa fa-twitter fa-2x" aria-hidden="true"></i></a> </div> </div> <nav class="sidebar-nav"> <a class="sidebar-nav-item" href="/">Home</a> <a class="sidebar-nav-item" href="/portfolio">Portfolio</a> <a class="sidebar-nav-item" href="/about">About</a> <a class="sidebar-nav-item" href="/resume">Resume</a> <span class="sidebar-nav-item">Currently v1.0.1</span> </nav> <div class="sidebar-item"> <p>Built with <i class="fa fa-heart" aria-hidden="true"></i> + <a href="http://www.jekyllrb.com">Jekyll</a>.</p> <p> &copy; 2018 Kingsley Torlowei. All rights reserved. </p> </div> </div> <div class="wrap"> <div class="masthead"> <div class="container"> </div> </div> <div class="container content"> <div class="notebook"> <h1 class="notebook-title">Sentiment Analyis on Movie Reviews</h1> <div class="project-skills"> Skills: Python, CNN, LSTM, GRU </div> <a target="_blank" href=https://github.com/kingsleytorlowei/data-science-projects/blob/master/Movie%20Sentiment%20Analysis/Sentiment_Analysis1.ipynb>Github</a> <hr /> <h2 id="introduction">Introduction</h2> <p>In this project, we’ll be classifying the sentiment of sentences from the Rotten tomatoes dataset.The Rotten Tomatoes movie review dataset is a corpus of movie reviews used for sentiment analysis, originally collected by Pang and Lee [1]. In their work on sentiment treebanks, Socher et al. [2] used Amazon’s Mechanical Turk to create fine-grained labels for all parsed phrases in the corpus. This competition presents a chance to benchmark your sentiment-analysis ideas on the Rotten Tomatoes dataset. You are asked to label phrases on a scale of five values: negative, somewhat negative, neutral, somewhat positive, positive. Obstacles like sentence negation, sarcasm, terseness, language ambiguity, and many others make this task very challenging. We’ll be combining LSTM, CNN, GRU Models for our implementation.</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">!</span><span class="n">pip</span> <span class="n">install</span> <span class="n">wordcloud</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>Collecting wordcloud
+[?25l  Downloading https://files.pythonhosted.org/packages/ae/af/849edf14d573eba9c8082db898ff0d090428d9485371cc4fe21a66717ad2/wordcloud-1.5.0-cp36-cp36m-manylinux1_x86_64.whl (361kB)
+[K    100% |████████████████████████████████| 368kB 23.4MB/s 
+[?25hRequirement already satisfied: numpy&gt;=1.6.1 in /usr/local/lib/python3.6/dist-packages (from wordcloud) (1.14.6)
+Requirement already satisfied: pillow in /usr/local/lib/python3.6/dist-packages (from wordcloud) (4.0.0)
+Requirement already satisfied: olefile in /usr/local/lib/python3.6/dist-packages (from pillow-&gt;wordcloud) (0.46)
+Installing collected packages: wordcloud
+Successfully installed wordcloud-1.5.0
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="err">!</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">U</span> <span class="o">-</span><span class="n">q</span> <span class="n">PyDrive</span>
+<span class="kn">from</span> <span class="nn">pydrive.auth</span> <span class="kn">import</span> <span class="n">GoogleAuth</span>
+<span class="kn">from</span> <span class="nn">pydrive.drive</span> <span class="kn">import</span> <span class="n">GoogleDrive</span>
+<span class="kn">from</span> <span class="nn">google.colab</span> <span class="kn">import</span> <span class="n">auth</span>
+<span class="kn">from</span> <span class="nn">oauth2client.client</span> <span class="kn">import</span> <span class="n">GoogleCredentials</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="n">auth</span><span class="o">.</span><span class="n">authenticate_user</span><span class="p">()</span>
+<span class="n">gauth</span> <span class="o">=</span> <span class="n">GoogleAuth</span><span class="p">()</span>
+<span class="n">gauth</span><span class="o">.</span><span class="n">credentials</span> <span class="o">=</span> <span class="n">GoogleCredentials</span><span class="o">.</span><span class="n">get_application_default</span><span class="p">()</span>
+<span class="n">drive</span> <span class="o">=</span> <span class="n">GoogleDrive</span><span class="p">(</span><span class="n">gauth</span><span class="p">)</span>
+</code></pre></div> <h2 id="importing-libraries">Importing Libraries</h2> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="kn">as</span> <span class="nn">sns</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+
+<span class="kn">from</span> <span class="nn">nltk.tokenize</span> <span class="kn">import</span> <span class="n">TweetTokenizer</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="c">#import LightGBM as lgb</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">stats</span>
+<span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="kn">import</span> <span class="n">hstack</span><span class="p">,</span> <span class="n">csr_matrix</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span><span class="p">,</span> <span class="n">cross_val_score</span>
+<span class="kn">from</span> <span class="nn">wordcloud</span> <span class="kn">import</span> <span class="n">WordCloud</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+<span class="kn">from</span> <span class="nn">nltk.corpus</span> <span class="kn">import</span> <span class="n">stopwords</span>
+<span class="kn">from</span> <span class="nn">nltk.util</span> <span class="kn">import</span> <span class="n">ngrams</span>
+<span class="kn">from</span> <span class="nn">sklearn.feature_extraction.text</span> <span class="kn">import</span> <span class="n">TfidfVectorizer</span>
+<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">StandardScaler</span>
+<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">LogisticRegression</span>
+<span class="kn">from</span> <span class="nn">sklearn.svm</span> <span class="kn">import</span> <span class="n">LinearSVC</span>
+<span class="kn">from</span> <span class="nn">sklearn.multiclass</span> <span class="kn">import</span> <span class="n">OneVsRestClassifier</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s">'max_colwidth'</span><span class="p">,</span><span class="mi">400</span><span class="p">)</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">google.colab</span> <span class="kn">import</span> <span class="n">files</span>
+<span class="kn">import</span> <span class="nn">io</span>
+
+<span class="n">uploaded</span> <span class="o">=</span> <span class="n">files</span><span class="o">.</span><span class="n">upload</span><span class="p">()</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code> &lt;input type="file" id="files-e2b5f4f7-fccf-4f9a-8e82-812ba706cecf" name="files[]" multiple disabled /&gt;
+ &lt;output id="result-e2b5f4f7-fccf-4f9a-8e82-812ba706cecf"&gt;
+  Upload widget is only available when the cell has been executed in the
+  current browser session. Please rerun this cell to enable.
+  &lt;/output&gt;
+  &lt;script src="/nbextensions/google.colab/files.js"&gt;&lt;/script&gt; 
+
+
+Saving test.tsv to test.tsv
+Saving train.tsv to train.tsv
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">data</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">uploaded</span><span class="p">[</span><span class="s">'train.tsv'</span><span class="p">])</span>    
+<span class="n">data1</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">uploaded</span><span class="p">[</span><span class="s">'test.tsv'</span><span class="p">])</span>    
+</code></pre></div> <h2 id="data-exploration">Data Exploration</h2> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">train</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">"</span><span class="se">\t</span><span class="s">"</span><span class="p">)</span>
+<span class="n">test</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">data1</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">"</span><span class="se">\t</span><span class="s">"</span><span class="p">)</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">train</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</code></pre></div> <div> <style scoped=""> .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } </style> <table border="1" class="dataframe"> <thead> <tr style="text-align: right;"> <th></th> <th>PhraseId</th> <th>SentenceId</th> <th>Phrase</th> <th>Sentiment</th> </tr> </thead> <tbody> <tr> <th>0</th> <td>1</td> <td>1</td> <td>A series of escapades demonstrating the adage that what is good for the goose is also good for the gander , some of which occasionally amuses but none of which amounts to much of a story .</td> <td>1</td> </tr> <tr> <th>1</th> <td>2</td> <td>1</td> <td>A series of escapades demonstrating the adage that what is good for the goose</td> <td>2</td> </tr> <tr> <th>2</th> <td>3</td> <td>1</td> <td>A series</td> <td>2</td> </tr> <tr> <th>3</th> <td>4</td> <td>1</td> <td>A</td> <td>2</td> </tr> <tr> <th>4</th> <td>5</td> <td>1</td> <td>series</td> <td>2</td> </tr> <tr> <th>5</th> <td>6</td> <td>1</td> <td>of escapades demonstrating the adage that what is good for the goose</td> <td>2</td> </tr> <tr> <th>6</th> <td>7</td> <td>1</td> <td>of</td> <td>2</td> </tr> <tr> <th>7</th> <td>8</td> <td>1</td> <td>escapades demonstrating the adage that what is good for the goose</td> <td>2</td> </tr> <tr> <th>8</th> <td>9</td> <td>1</td> <td>escapades</td> <td>2</td> </tr> <tr> <th>9</th> <td>10</td> <td>1</td> <td>demonstrating the adage that what is good for the goose</td> <td>2</td> </tr> </tbody> </table> </div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">train</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">train</span><span class="o">.</span><span class="n">SentenceId</span> <span class="o">==</span> <span class="mi">3</span><span class="p">]</span>
+</code></pre></div> <div> <style scoped=""> .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } </style> <table border="1" class="dataframe"> <thead> <tr style="text-align: right;"> <th></th> <th>PhraseId</th> <th>SentenceId</th> <th>Phrase</th> <th>Sentiment</th> </tr> </thead> <tbody> <tr> <th>81</th> <td>82</td> <td>3</td> <td>Even fans of Ismail Merchant 's work , I suspect , would have a hard time sitting through this one .</td> <td>1</td> </tr> <tr> <th>82</th> <td>83</td> <td>3</td> <td>Even fans of Ismail Merchant 's work</td> <td>2</td> </tr> <tr> <th>83</th> <td>84</td> <td>3</td> <td>Even fans</td> <td>2</td> </tr> <tr> <th>84</th> <td>85</td> <td>3</td> <td>Even</td> <td>2</td> </tr> <tr> <th>85</th> <td>86</td> <td>3</td> <td>fans</td> <td>3</td> </tr> <tr> <th>86</th> <td>87</td> <td>3</td> <td>of Ismail Merchant 's work</td> <td>2</td> </tr> <tr> <th>87</th> <td>88</td> <td>3</td> <td>Ismail Merchant 's work</td> <td>2</td> </tr> <tr> <th>88</th> <td>89</td> <td>3</td> <td>Ismail Merchant 's</td> <td>2</td> </tr> <tr> <th>89</th> <td>90</td> <td>3</td> <td>Ismail</td> <td>2</td> </tr> <tr> <th>90</th> <td>91</td> <td>3</td> <td>Merchant 's</td> <td>2</td> </tr> <tr> <th>91</th> <td>92</td> <td>3</td> <td>Merchant</td> <td>2</td> </tr> <tr> <th>92</th> <td>93</td> <td>3</td> <td>'s</td> <td>2</td> </tr> <tr> <th>93</th> <td>94</td> <td>3</td> <td>work</td> <td>2</td> </tr> <tr> <th>94</th> <td>95</td> <td>3</td> <td>, I suspect , would have a hard time sitting through this one .</td> <td>1</td> </tr> <tr> <th>95</th> <td>96</td> <td>3</td> <td>, I suspect ,</td> <td>2</td> </tr> <tr> <th>96</th> <td>97</td> <td>3</td> <td>I suspect ,</td> <td>2</td> </tr> <tr> <th>97</th> <td>98</td> <td>3</td> <td>I suspect</td> <td>2</td> </tr> <tr> <th>98</th> <td>99</td> <td>3</td> <td>I</td> <td>2</td> </tr> <tr> <th>99</th> <td>100</td> <td>3</td> <td>suspect</td> <td>2</td> </tr> <tr> <th>100</th> <td>101</td> <td>3</td> <td>would have a hard time sitting through this one .</td> <td>1</td> </tr> <tr> <th>101</th> <td>102</td> <td>3</td> <td>would have a hard time sitting through this one</td> <td>0</td> </tr> <tr> <th>102</th> <td>103</td> <td>3</td> <td>would</td> <td>2</td> </tr> <tr> <th>103</th> <td>104</td> <td>3</td> <td>have a hard time sitting through this one</td> <td>0</td> </tr> <tr> <th>104</th> <td>105</td> <td>3</td> <td>have</td> <td>2</td> </tr> <tr> <th>105</th> <td>106</td> <td>3</td> <td>a hard time sitting through this one</td> <td>1</td> </tr> <tr> <th>106</th> <td>107</td> <td>3</td> <td>a hard time</td> <td>1</td> </tr> <tr> <th>107</th> <td>108</td> <td>3</td> <td>hard time</td> <td>1</td> </tr> <tr> <th>108</th> <td>109</td> <td>3</td> <td>hard</td> <td>2</td> </tr> <tr> <th>109</th> <td>110</td> <td>3</td> <td>time</td> <td>2</td> </tr> <tr> <th>110</th> <td>111</td> <td>3</td> <td>sitting through this one</td> <td>1</td> </tr> <tr> <th>111</th> <td>112</td> <td>3</td> <td>sitting</td> <td>2</td> </tr> <tr> <th>112</th> <td>113</td> <td>3</td> <td>through this one</td> <td>2</td> </tr> <tr> <th>113</th> <td>114</td> <td>3</td> <td>through</td> <td>2</td> </tr> <tr> <th>114</th> <td>115</td> <td>3</td> <td>this one</td> <td>2</td> </tr> <tr> <th>115</th> <td>116</td> <td>3</td> <td>one</td> <td>2</td> </tr> </tbody> </table> </div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">print</span><span class="p">(</span><span class="s">'Average count of phrases per sentence in train is {0:.0f}.'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">train</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s">'SentenceId'</span><span class="p">)[</span><span class="s">'Phrase'</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'Average count of phrases per sentence in test is {0:.0f}.'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s">'SentenceId'</span><span class="p">)[</span><span class="s">'Phrase'</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()))</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>Average count of phrases per sentence in train is 18.
+Average count of phrases per sentence in test is 20.
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">print</span><span class="p">(</span><span class="s">'Number of phrases in train: {}. Number of sentences in train: {}.'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">train</span><span class="o">.</span><span class="n">SentenceId</span><span class="o">.</span><span class="n">unique</span><span class="p">())))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'Number of phrases in test: {}. Number of sentences in test: {}.'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">SentenceId</span><span class="o">.</span><span class="n">unique</span><span class="p">())))</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>Number of phrases in train: 156060. Number of sentences in train: 8529.
+Number of phrases in test: 66292. Number of sentences in test: 3310.
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">print</span><span class="p">(</span><span class="s">'Average word length of phrases in train is {0:.0f}.'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">train</span><span class="p">[</span><span class="s">'Phrase'</span><span class="p">]</span><span class="o">.</span><span class="nb">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">())))))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'Average word length of phrases in test is {0:.0f}.'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">test</span><span class="p">[</span><span class="s">'Phrase'</span><span class="p">]</span><span class="o">.</span><span class="nb">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">())))))</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>Average word length of phrases in train is 7.
+Average word length of phrases in test is 7.
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">text</span> <span class="o">=</span> <span class="s">' '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">train</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">train</span><span class="o">.</span><span class="n">SentenceId</span> <span class="o">==</span> <span class="mi">4</span><span class="p">,</span> <span class="s">'Phrase'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="n">text</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ngrams</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="mi">3</span><span class="p">)]</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">print</span><span class="p">(</span><span class="s">'Number of sentences in training set:'</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">train</span><span class="p">[</span><span class="s">'SentenceId'</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'Number of sentences in test set:'</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">test</span><span class="p">[</span><span class="s">'SentenceId'</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'Average words per sentence in train:'</span><span class="p">,</span><span class="n">train</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s">'SentenceId'</span><span class="p">)[</span><span class="s">'Phrase'</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'Average words per sentence in test:'</span><span class="p">,</span><span class="n">test</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s">'SentenceId'</span><span class="p">)[</span><span class="s">'Phrase'</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>Number of sentences in training set: 8529
+Number of sentences in test set: 3310
+Average words per sentence in train: 18.297572986282095
+Average words per sentence in test: 20.027794561933536
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">class_count</span> <span class="o">=</span> <span class="n">train</span><span class="p">[</span><span class="s">'Sentiment'</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+<span class="n">class_count</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>2    79582
+3    32927
+1    27273
+4     9206
+0     7072
+Name: Sentiment, dtype: int64
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">class_count</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">class_count</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">sns</span><span class="o">.</span><span class="n">barplot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">"Sentiment"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">"Number of reviews"</span><span class="p">)</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>/usr/local/lib/python3.6/dist-packages/seaborn/categorical.py:1428: FutureWarning: remove_na is deprecated and is a private function. Do not use.
+  stat_data = remove_na(group_data)
+
+
+
+
+
+Text(0,0.5,'Number of reviews')
+</code></pre></div> <p><img src="/portfolio/Sentiment_Analysiss/output_17_2.png" alt="png" /></p> <h2 id="the-sentiment-labels-are">The sentiment labels are:</h2> <p>0 - negative 1 - somewhat negative 2 - neutral 3 - somewhat positive 4 - positive</p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">OneHotEncoder</span>
+
+<span class="n">enc</span> <span class="o">=</span> <span class="n">OneHotEncoder</span><span class="p">(</span><span class="n">sparse</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">enc</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train</span><span class="p">[</span><span class="s">"Sentiment"</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Number of classes:"</span><span class="p">,</span> <span class="n">enc</span><span class="o">.</span><span class="n">n_values_</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s">"Class distribution:</span><span class="se">\n</span><span class="s">{}"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">train</span><span class="p">[</span><span class="s">"Sentiment"</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">/</span><span class="n">train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>Number of classes: 5
+Class distribution:
+2    0.509945
+3    0.210989
+1    0.174760
+4    0.058990
+0    0.045316
+Name: Sentiment, dtype: float64
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">wordcloud</span> <span class="kn">import</span> <span class="n">WordCloud</span><span class="p">,</span> <span class="n">STOPWORDS</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="n">stopwords</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">STOPWORDS</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">show_wordcloud</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+    <span class="n">wordcloud</span> <span class="o">=</span> <span class="n">WordCloud</span><span class="p">(</span>
+        <span class="n">background_color</span><span class="o">=</span><span class="s">'black'</span><span class="p">,</span>
+        <span class="n">stopwords</span><span class="o">=</span><span class="n">stopwords</span><span class="p">,</span>
+        <span class="n">max_words</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+        <span class="n">max_font_size</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> 
+        <span class="n">scale</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">random_state</span><span class="o">=</span><span class="mi">1</span> <span class="c"># chosen at random by flipping a coin; it was heads</span>
+<span class="p">)</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s">'off'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">title</span><span class="p">:</span> 
+        <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="mf">2.3</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">wordcloud</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">show_wordcloud</span><span class="p">(</span><span class="n">train</span><span class="p">[</span><span class="s">'Phrase'</span><span class="p">],</span><span class="s">'Most Common Words from the whole corpus'</span><span class="p">)</span>
+</code></pre></div> <p><img src="/portfolio/Sentiment_Analysiss/output_21_0.png" alt="png" /></p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">show_wordcloud</span><span class="p">(</span><span class="n">train</span><span class="p">[</span><span class="n">train</span><span class="p">[</span><span class="s">'Sentiment'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">][</span><span class="s">'Phrase'</span><span class="p">],</span><span class="s">'Negative Reviews'</span><span class="p">)</span>
+</code></pre></div> <p><img src="/portfolio/Sentiment_Analysiss/output_22_0.png" alt="png" /></p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">show_wordcloud</span><span class="p">(</span><span class="n">train</span><span class="p">[</span><span class="n">train</span><span class="p">[</span><span class="s">'Sentiment'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">][</span><span class="s">'Phrase'</span><span class="p">],</span><span class="s">'Somewhat Negative Reviews'</span><span class="p">)</span>
+</code></pre></div> <p><img src="/portfolio/Sentiment_Analysiss/output_23_0.png" alt="png" /></p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">show_wordcloud</span><span class="p">(</span><span class="n">train</span><span class="p">[</span><span class="n">train</span><span class="p">[</span><span class="s">'Sentiment'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">][</span><span class="s">'Phrase'</span><span class="p">],</span><span class="s">'Neutral Reviews'</span><span class="p">)</span>
+</code></pre></div> <p><img src="/portfolio/Sentiment_Analysiss/output_24_0.png" alt="png" /></p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">show_wordcloud</span><span class="p">(</span><span class="n">train</span><span class="p">[</span><span class="n">train</span><span class="p">[</span><span class="s">'Sentiment'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">][</span><span class="s">'Phrase'</span><span class="p">],</span><span class="s">'Somewhat Positive Reviews'</span><span class="p">)</span>
+</code></pre></div> <p><img src="/portfolio/Sentiment_Analysiss/output_25_0.png" alt="png" /></p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">show_wordcloud</span><span class="p">(</span><span class="n">train</span><span class="p">[</span><span class="n">train</span><span class="p">[</span><span class="s">'Sentiment'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span><span class="p">][</span><span class="s">'Phrase'</span><span class="p">],</span><span class="s">'Postive Reviews'</span><span class="p">)</span>
+</code></pre></div> <p><img src="/portfolio/Sentiment_Analysiss/output_26_0.png" alt="png" /></p> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">sklearn.feature_extraction.text</span> <span class="kn">import</span> <span class="n">CountVectorizer</span>
+
+<span class="n">cv1</span> <span class="o">=</span> <span class="n">CountVectorizer</span><span class="p">()</span>
+<span class="n">cv1</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train</span><span class="p">[</span><span class="s">"Phrase"</span><span class="p">])</span>
+
+<span class="n">cv2</span> <span class="o">=</span> <span class="n">CountVectorizer</span><span class="p">()</span>
+<span class="n">cv2</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">test</span><span class="p">[</span><span class="s">"Phrase"</span><span class="p">])</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s">"Train Set Vocabulary Size:"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">cv1</span><span class="o">.</span><span class="n">vocabulary_</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Test Set Vocabulary Size:"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">vocabulary_</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Number of Words that occur in both:"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">cv1</span><span class="o">.</span><span class="n">vocabulary_</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">vocabulary_</span><span class="o">.</span><span class="n">keys</span><span class="p">()))))</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>Train Set Vocabulary Size: 15240
+Test Set Vocabulary Size: 9546
+Number of Words that occur in both: 7057
+</code></pre></div> <p>So we have phrases as data, a phrase can have a single word and a punctuation mark and it could mean a totally different sentiment. Also assigned sentiments can be strange. This means several things:</p> <ul> <li>using stopwords can be a bad idea, especially when phrases contain one single stopword;</li> <li>puntuation could be important, so it should be used;</li> <li>ngrams are necessary to get the most info from data;</li> <li>using features like word count or sentence length won’t be useful;</li> </ul> <h2 id="machine-learning">Machine Learning</h2> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">nltk.tokenize</span> <span class="kn">import</span> <span class="n">TweetTokenizer</span>
+<span class="kn">from</span> <span class="nn">sklearn.feature_extraction.text</span> <span class="kn">import</span> <span class="n">TfidfVectorizer</span>
+<span class="n">tokenizer</span> <span class="o">=</span> <span class="n">TweetTokenizer</span><span class="p">()</span>
+</code></pre></div> <h2 id="n-grams">N-Grams</h2> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">vectorizer</span> <span class="o">=</span> <span class="n">TfidfVectorizer</span><span class="p">(</span><span class="n">ngram_range</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">tokenizer</span><span class="o">=</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">tokenize</span><span class="p">)</span>
+<span class="n">full_text</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">train</span><span class="p">[</span><span class="s">'Phrase'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">test</span><span class="p">[</span><span class="s">'Phrase'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="n">vectorizer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">full_text</span><span class="p">)</span>
+<span class="n">train_vectorized</span> <span class="o">=</span> <span class="n">vectorizer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">train</span><span class="p">[</span><span class="s">'Phrase'</span><span class="p">])</span>
+<span class="n">test_vectorized</span> <span class="o">=</span> <span class="n">vectorizer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">test</span><span class="p">[</span><span class="s">'Phrase'</span><span class="p">])</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">y</span> <span class="o">=</span> <span class="n">train</span><span class="p">[</span><span class="s">'Sentiment'</span><span class="p">]</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+<span class="n">x_train</span> <span class="p">,</span> <span class="n">x_val</span><span class="p">,</span> <span class="n">y_train</span> <span class="p">,</span> <span class="n">y_val</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">train_vectorized</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">test_size</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">)</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">LogisticRegression</span>
+<span class="kn">from</span> <span class="nn">sklearn.svm</span> <span class="kn">import</span> <span class="n">LinearSVC</span>
+<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestClassifier</span>
+<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">VotingClassifier</span>
+<span class="kn">from</span> <span class="nn">sklearn.multiclass</span> <span class="kn">import</span> <span class="n">OneVsRestClassifier</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">classification_report</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">accuracy_score</span>
+</code></pre></div> <h2 id="training-logistic-reagression-model-and-an-svm">Training Logistic Reagression model and an SVM.</h2> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">lr</span> <span class="o">=</span> <span class="n">LogisticRegression</span><span class="p">()</span>
+<span class="n">ovr</span> <span class="o">=</span> <span class="n">OneVsRestClassifier</span><span class="p">(</span><span class="n">lr</span><span class="p">)</span>
+<span class="n">ovr</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span><span class="n">y_train</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">classification_report</span><span class="p">(</span> <span class="n">ovr</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x_val</span><span class="p">)</span> <span class="p">,</span> <span class="n">y_val</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">accuracy_score</span><span class="p">(</span> <span class="n">ovr</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x_val</span><span class="p">)</span> <span class="p">,</span> <span class="n">y_val</span> <span class="p">))</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>             precision    recall  f1-score   support
+
+          0       0.18      0.67      0.29       392
+          1       0.33      0.57      0.42      3160
+          2       0.91      0.65      0.76     22377
+          3       0.42      0.60      0.50      4658
+          4       0.22      0.65      0.33       625
+
+avg / total       0.76      0.63      0.67     31212
+
+0.6325451749327182
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">svm</span> <span class="o">=</span> <span class="n">LinearSVC</span><span class="p">()</span>
+<span class="n">svm</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span><span class="n">y_train</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">classification_report</span><span class="p">(</span> <span class="n">svm</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x_val</span><span class="p">)</span> <span class="p">,</span> <span class="n">y_val</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">accuracy_score</span><span class="p">(</span> <span class="n">svm</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x_val</span><span class="p">)</span> <span class="p">,</span> <span class="n">y_val</span> <span class="p">))</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>             precision    recall  f1-score   support
+
+          0       0.40      0.52      0.46      1100
+          1       0.50      0.56      0.53      4895
+          2       0.82      0.73      0.77     17857
+          3       0.52      0.58      0.55      5906
+          4       0.42      0.52      0.46      1454
+
+avg / total       0.68      0.66      0.66     31212
+
+0.6561258490324234
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code>
+<span class="n">estimators</span> <span class="o">=</span> <span class="p">[</span> <span class="p">(</span><span class="s">'svm'</span><span class="p">,</span><span class="n">svm</span><span class="p">)</span> <span class="p">,</span> <span class="p">(</span><span class="s">'ovr'</span> <span class="p">,</span> <span class="n">ovr</span><span class="p">)</span> <span class="p">]</span>
+<span class="n">clf</span> <span class="o">=</span> <span class="n">VotingClassifier</span><span class="p">(</span><span class="n">estimators</span> <span class="p">,</span> <span class="n">voting</span><span class="o">=</span><span class="s">'hard'</span><span class="p">)</span>
+<span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span><span class="n">y_train</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">classification_report</span><span class="p">(</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x_val</span><span class="p">)</span> <span class="p">,</span> <span class="n">y_val</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">accuracy_score</span><span class="p">(</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x_val</span><span class="p">)</span> <span class="p">,</span> <span class="n">y_val</span> <span class="p">))</span>
+
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>/usr/local/lib/python3.6/dist-packages/sklearn/preprocessing/label.py:151: DeprecationWarning: The truth value of an empty array is ambiguous. Returning False, but in future this will result in an error. Use `array.size &gt; 0` to check that an array is not empty.
+  if diff:
+
+
+             precision    recall  f1-score   support
+
+          0       0.41      0.52      0.45      1117
+          1       0.51      0.56      0.53      5056
+          2       0.86      0.68      0.76     19996
+          3       0.41      0.61      0.49      4441
+          4       0.22      0.66      0.33       602
+
+avg / total       0.71      0.65      0.67     31212
+
+0.6471549404075355
+
+
+/usr/local/lib/python3.6/dist-packages/sklearn/preprocessing/label.py:151: DeprecationWarning: The truth value of an empty array is ambiguous. Returning False, but in future this will result in an error. Use `array.size &gt; 0` to check that an array is not empty.
+  if diff:
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">keras.utils</span> <span class="kn">import</span> <span class="n">to_categorical</span>
+<span class="n">target</span><span class="o">=</span><span class="n">train</span><span class="o">.</span><span class="n">Sentiment</span><span class="o">.</span><span class="n">values</span>
+<span class="n">y</span><span class="o">=</span><span class="n">to_categorical</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+<span class="n">y</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>Using TensorFlow backend.
+
+
+
+
+
+array([[0., 1., 0., 0., 0.],
+       [0., 0., 1., 0., 0.],
+       [0., 0., 1., 0., 0.],
+       ...,
+       [0., 0., 0., 1., 0.],
+       [0., 0., 1., 0., 0.],
+       [0., 0., 1., 0., 0.]], dtype=float32)
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">max_features</span> <span class="o">=</span> <span class="mi">13000</span>
+<span class="n">max_words</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">batch_size</span> <span class="o">=</span> <span class="mi">128</span>
+<span class="n">epochs</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">num_classes</span><span class="o">=</span><span class="mi">5</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+<span class="n">X_train</span> <span class="p">,</span> <span class="n">X_val</span> <span class="p">,</span> <span class="n">Y_train</span> <span class="p">,</span> <span class="n">Y_val</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">train</span><span class="p">[</span><span class="s">'Phrase'</span><span class="p">],</span><span class="n">y</span><span class="p">,</span><span class="n">test_size</span> <span class="o">=</span> <span class="mf">0.20</span><span class="p">)</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">keras.preprocessing.text</span> <span class="kn">import</span> <span class="n">Tokenizer</span>
+<span class="kn">from</span> <span class="nn">keras.preprocessing.sequence</span> <span class="kn">import</span> <span class="n">pad_sequences</span>
+<span class="kn">from</span> <span class="nn">keras.models</span> <span class="kn">import</span> <span class="n">Sequential</span>
+<span class="kn">from</span> <span class="nn">keras.layers</span> <span class="kn">import</span> <span class="n">Dense</span><span class="p">,</span><span class="n">GRU</span><span class="p">,</span><span class="n">LSTM</span><span class="p">,</span><span class="n">Embedding</span>
+<span class="kn">from</span> <span class="nn">keras.optimizers</span> <span class="kn">import</span> <span class="n">Adam</span>
+<span class="kn">from</span> <span class="nn">keras.layers</span> <span class="kn">import</span> <span class="n">SpatialDropout1D</span><span class="p">,</span><span class="n">Dropout</span><span class="p">,</span><span class="n">Bidirectional</span><span class="p">,</span><span class="n">Conv1D</span><span class="p">,</span><span class="n">GlobalMaxPooling1D</span><span class="p">,</span><span class="n">MaxPooling1D</span><span class="p">,</span><span class="n">Flatten</span>
+<span class="kn">from</span> <span class="nn">keras.callbacks</span> <span class="kn">import</span> <span class="n">ModelCheckpoint</span><span class="p">,</span> <span class="n">TensorBoard</span><span class="p">,</span> <span class="n">Callback</span><span class="p">,</span> <span class="n">EarlyStopping</span>
+
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">Tokenizer</span><span class="p">(</span><span class="n">num_words</span><span class="o">=</span><span class="n">max_features</span><span class="p">)</span>
+<span class="n">tokenizer</span><span class="o">.</span><span class="n">fit_on_texts</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">X_train</span><span class="p">))</span>
+<span class="n">X_train</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">texts_to_sequences</span><span class="p">(</span><span class="n">X_train</span><span class="p">)</span>
+<span class="n">X_val</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">texts_to_sequences</span><span class="p">(</span><span class="n">X_val</span><span class="p">)</span>
+
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">X_test</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">texts_to_sequences</span><span class="p">(</span><span class="n">test</span><span class="p">[</span><span class="s">'Phrase'</span><span class="p">])</span>
+<span class="n">X_test</span> <span class="o">=</span><span class="n">pad_sequences</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="n">max_words</span><span class="p">)</span>
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">X_train</span> <span class="o">=</span><span class="n">pad_sequences</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="n">max_words</span><span class="p">)</span>
+<span class="n">X_val</span> <span class="o">=</span> <span class="n">pad_sequences</span><span class="p">(</span><span class="n">X_val</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="n">max_words</span><span class="p">)</span>
+<span class="n">X_test</span> <span class="o">=</span><span class="n">pad_sequences</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="n">max_words</span><span class="p">)</span>
+</code></pre></div> <h2 id="gru">GRU</h2> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">model_GRU</span><span class="o">=</span><span class="n">Sequential</span><span class="p">()</span>
+<span class="n">model_GRU</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Embedding</span><span class="p">(</span><span class="n">max_features</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="n">mask_zero</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="n">model_GRU</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">GRU</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="n">dropout</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span><span class="n">return_sequences</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="n">model_GRU</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">GRU</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span><span class="n">dropout</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span><span class="n">return_sequences</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+<span class="n">model_GRU</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Dense</span><span class="p">(</span><span class="n">num_classes</span><span class="p">,</span><span class="n">activation</span><span class="o">=</span><span class="s">'softmax'</span><span class="p">))</span>
+<span class="n">model_GRU</span><span class="o">.</span><span class="nb">compile</span><span class="p">(</span><span class="n">loss</span><span class="o">=</span><span class="s">'categorical_crossentropy'</span><span class="p">,</span><span class="n">optimizer</span><span class="o">=</span><span class="n">Adam</span><span class="p">(</span><span class="n">lr</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">),</span><span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="s">'accuracy'</span><span class="p">])</span>
+<span class="n">model_GRU</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_1 (Embedding)      (None, None, 100)         1300000   
+_________________________________________________________________
+gru_1 (GRU)                  (None, None, 64)          31680     
+_________________________________________________________________
+gru_2 (GRU)                  (None, 32)                9312      
+_________________________________________________________________
+dense_1 (Dense)              (None, 5)                 165       
+=================================================================
+Total params: 1,341,157
+Trainable params: 1,341,157
+Non-trainable params: 0
+_________________________________________________________________
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="o">%%</span><span class="n">time</span>
+<span class="n">history1</span><span class="o">=</span><span class="n">model_GRU</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">Y_train</span><span class="p">,</span> <span class="n">validation_data</span><span class="o">=</span><span class="p">(</span><span class="n">X_val</span><span class="p">,</span> <span class="n">Y_val</span><span class="p">),</span><span class="n">epochs</span><span class="o">=</span><span class="n">epochs</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>Train on 124848 samples, validate on 31212 samples
+Epoch 1/3
+124848/124848 [==============================] - 258s 2ms/step - loss: 1.0478 - acc: 0.5891 - val_loss: 0.8912 - val_acc: 0.6418
+Epoch 2/3
+124848/124848 [==============================] - 255s 2ms/step - loss: 0.8332 - acc: 0.6636 - val_loss: 0.8555 - val_acc: 0.6570
+Epoch 3/3
+124848/124848 [==============================] - 255s 2ms/step - loss: 0.7752 - acc: 0.6843 - val_loss: 0.8376 - val_acc: 0.6626
+CPU times: user 16min 47s, sys: 1min 57s, total: 18min 45s
+Wall time: 12min 50s
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">y_pred1</span><span class="o">=</span><span class="n">model_GRU</span><span class="o">.</span><span class="n">predict_classes</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>66292/66292 [==============================] - 160s 2ms/step
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">model2_GRU</span><span class="o">=</span><span class="n">Sequential</span><span class="p">()</span>
+<span class="n">model2_GRU</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Embedding</span><span class="p">(</span><span class="n">max_features</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="n">mask_zero</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="n">model2_GRU</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">GRU</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="n">dropout</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span><span class="n">return_sequences</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="n">model2_GRU</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">GRU</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span><span class="n">dropout</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span><span class="n">return_sequences</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+<span class="n">model2_GRU</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Dense</span><span class="p">(</span><span class="n">num_classes</span><span class="p">,</span><span class="n">activation</span><span class="o">=</span><span class="s">'sigmoid'</span><span class="p">))</span>
+<span class="n">model2_GRU</span><span class="o">.</span><span class="nb">compile</span><span class="p">(</span><span class="n">loss</span><span class="o">=</span><span class="s">'binary_crossentropy'</span><span class="p">,</span><span class="n">optimizer</span><span class="o">=</span><span class="n">Adam</span><span class="p">(</span><span class="n">lr</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">),</span><span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="s">'accuracy'</span><span class="p">])</span>
+<span class="n">model2_GRU</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_6 (Embedding)      (None, None, 100)         1300000   
+_________________________________________________________________
+gru_6 (GRU)                  (None, None, 64)          31680     
+_________________________________________________________________
+gru_7 (GRU)                  (None, 32)                9312      
+_________________________________________________________________
+dense_8 (Dense)              (None, 5)                 165       
+=================================================================
+Total params: 1,341,157
+Trainable params: 1,341,157
+Non-trainable params: 0
+_________________________________________________________________
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="o">%%</span><span class="n">time</span>
+<span class="n">history2</span><span class="o">=</span><span class="n">model2_GRU</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">Y_train</span><span class="p">,</span> <span class="n">validation_data</span><span class="o">=</span><span class="p">(</span><span class="n">X_val</span><span class="p">,</span> <span class="n">Y_val</span><span class="p">),</span><span class="n">epochs</span><span class="o">=</span><span class="n">epochs</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>Train on 124848 samples, validate on 31212 samples
+Epoch 1/3
+124848/124848 [==============================] - 268s 2ms/step - loss: 0.3751 - acc: 0.8435 - val_loss: 0.3178 - val_acc: 0.8570
+Epoch 2/3
+124848/124848 [==============================] - 267s 2ms/step - loss: 0.2974 - acc: 0.8665 - val_loss: 0.3047 - val_acc: 0.8640
+Epoch 3/3
+124848/124848 [==============================] - 266s 2ms/step - loss: 0.2797 - acc: 0.8751 - val_loss: 0.2998 - val_acc: 0.8671
+CPU times: user 17min 38s, sys: 2min, total: 19min 38s
+Wall time: 13min 22s
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">y_pred2</span><span class="o">=</span><span class="n">model2_GRU</span><span class="o">.</span><span class="n">predict_classes</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>66292/66292 [==============================] - 165s 2ms/step
+</code></pre></div> <h2 id="lstm">LSTM</h2> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">model3_LSTM</span><span class="o">=</span><span class="n">Sequential</span><span class="p">()</span>
+<span class="n">model3_LSTM</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Embedding</span><span class="p">(</span><span class="n">max_features</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="n">mask_zero</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="n">model3_LSTM</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">LSTM</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="n">dropout</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span><span class="n">return_sequences</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="n">model3_LSTM</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">LSTM</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span><span class="n">dropout</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span><span class="n">return_sequences</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+<span class="n">model3_LSTM</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Dense</span><span class="p">(</span><span class="n">num_classes</span><span class="p">,</span><span class="n">activation</span><span class="o">=</span><span class="s">'sigmoid'</span><span class="p">))</span>
+<span class="n">model3_LSTM</span><span class="o">.</span><span class="nb">compile</span><span class="p">(</span><span class="n">loss</span><span class="o">=</span><span class="s">'binary_crossentropy'</span><span class="p">,</span><span class="n">optimizer</span><span class="o">=</span><span class="n">Adam</span><span class="p">(</span><span class="n">lr</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">),</span><span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="s">'accuracy'</span><span class="p">])</span>
+<span class="n">model3_LSTM</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_2 (Embedding)      (None, None, 100)         1300000   
+_________________________________________________________________
+lstm_1 (LSTM)                (None, None, 64)          42240     
+_________________________________________________________________
+lstm_2 (LSTM)                (None, 32)                12416     
+_________________________________________________________________
+dense_2 (Dense)              (None, 5)                 165       
+=================================================================
+Total params: 1,354,821
+Trainable params: 1,354,821
+Non-trainable params: 0
+_________________________________________________________________
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="o">%%</span><span class="n">time</span>
+<span class="n">history3</span><span class="o">=</span><span class="n">model3_LSTM</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">Y_train</span><span class="p">,</span> <span class="n">validation_data</span><span class="o">=</span><span class="p">(</span><span class="n">X_val</span><span class="p">,</span> <span class="n">Y_val</span><span class="p">),</span><span class="n">epochs</span><span class="o">=</span><span class="n">epochs</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>Train on 124848 samples, validate on 31212 samples
+Epoch 1/3
+124848/124848 [==============================] - 318s 3ms/step - loss: 0.4050 - acc: 0.8386 - val_loss: 0.3618 - val_acc: 0.8506
+Epoch 2/3
+124848/124848 [==============================] - 316s 3ms/step - loss: 0.3320 - acc: 0.8566 - val_loss: 0.3185 - val_acc: 0.8576
+Epoch 3/3
+124848/124848 [==============================] - 315s 3ms/step - loss: 0.2886 - acc: 0.8697 - val_loss: 0.3055 - val_acc: 0.8644
+CPU times: user 20min 21s, sys: 2min 23s, total: 22min 45s
+Wall time: 15min 51s
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">y_pred3</span><span class="o">=</span><span class="n">model3_LSTM</span><span class="o">.</span><span class="n">predict_classes</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>66292/66292 [==============================] - 191s 3ms/step
+</code></pre></div> <h2 id="bidirectional-gru">Bidirectional GRU</h2> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">model4_BGRU</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">()</span>
+<span class="n">model4_BGRU</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Embedding</span><span class="p">(</span><span class="n">max_features</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">input_length</span><span class="o">=</span><span class="n">max_words</span><span class="p">))</span>
+<span class="n">model4_BGRU</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">SpatialDropout1D</span><span class="p">(</span><span class="mf">0.25</span><span class="p">))</span>
+<span class="n">model4_BGRU</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Bidirectional</span><span class="p">(</span><span class="n">GRU</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="n">dropout</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span><span class="n">return_sequences</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)))</span>
+<span class="n">model4_BGRU</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Bidirectional</span><span class="p">(</span><span class="n">GRU</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span><span class="n">dropout</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span><span class="n">return_sequences</span> <span class="o">=</span> <span class="bp">False</span><span class="p">)))</span>
+<span class="n">model4_BGRU</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Dense</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s">'sigmoid'</span><span class="p">))</span>
+<span class="n">model4_BGRU</span><span class="o">.</span><span class="nb">compile</span><span class="p">(</span><span class="n">loss</span><span class="o">=</span><span class="s">'binary_crossentropy'</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="s">'adam'</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="s">'accuracy'</span><span class="p">])</span>
+<span class="n">model4_BGRU</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_3 (Embedding)      (None, 50, 100)           1300000   
+_________________________________________________________________
+spatial_dropout1d_1 (Spatial (None, 50, 100)           0         
+_________________________________________________________________
+bidirectional_1 (Bidirection (None, 50, 128)           63360     
+_________________________________________________________________
+bidirectional_2 (Bidirection (None, 64)                30912     
+_________________________________________________________________
+dense_3 (Dense)              (None, 5)                 325       
+=================================================================
+Total params: 1,394,597
+Trainable params: 1,394,597
+Non-trainable params: 0
+_________________________________________________________________
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="o">%%</span><span class="n">time</span>
+<span class="n">history4</span><span class="o">=</span><span class="n">model4_BGRU</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">Y_train</span><span class="p">,</span> <span class="n">validation_data</span><span class="o">=</span><span class="p">(</span><span class="n">X_val</span><span class="p">,</span> <span class="n">Y_val</span><span class="p">),</span><span class="n">epochs</span><span class="o">=</span><span class="n">epochs</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>Train on 124848 samples, validate on 31212 samples
+Epoch 1/3
+124848/124848 [==============================] - 394s 3ms/step - loss: 0.3492 - acc: 0.8463 - val_loss: 0.3079 - val_acc: 0.8592
+Epoch 2/3
+124848/124848 [==============================] - 389s 3ms/step - loss: 0.2912 - acc: 0.8683 - val_loss: 0.2956 - val_acc: 0.8664
+Epoch 3/3
+124848/124848 [==============================] - 387s 3ms/step - loss: 0.2758 - acc: 0.8760 - val_loss: 0.2922 - val_acc: 0.8677
+CPU times: user 23min 1s, sys: 2min 28s, total: 25min 29s
+Wall time: 19min 33s
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">y_pred4</span><span class="o">=</span><span class="n">model4_BGRU</span><span class="o">.</span><span class="n">predict_classes</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>66292/66292 [==============================] - 202s 3ms/step
+</code></pre></div> <h2 id="cnn">CNN</h2> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">model5_CNN</span><span class="o">=</span> <span class="n">Sequential</span><span class="p">()</span>
+<span class="n">model5_CNN</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Embedding</span><span class="p">(</span><span class="n">max_features</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="n">input_length</span><span class="o">=</span><span class="n">max_words</span><span class="p">))</span>
+<span class="n">model5_CNN</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Dropout</span><span class="p">(</span><span class="mf">0.2</span><span class="p">))</span>
+<span class="n">model5_CNN</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Conv1D</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">padding</span><span class="o">=</span><span class="s">'same'</span><span class="p">,</span><span class="n">activation</span><span class="o">=</span><span class="s">'relu'</span><span class="p">,</span><span class="n">strides</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">model5_CNN</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">GlobalMaxPooling1D</span><span class="p">())</span>
+<span class="n">model5_CNN</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Dense</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span><span class="n">activation</span><span class="o">=</span><span class="s">'relu'</span><span class="p">))</span>
+<span class="n">model5_CNN</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Dropout</span><span class="p">(</span><span class="mf">0.2</span><span class="p">))</span>
+<span class="n">model5_CNN</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Dense</span><span class="p">(</span><span class="n">num_classes</span><span class="p">,</span><span class="n">activation</span><span class="o">=</span><span class="s">'sigmoid'</span><span class="p">))</span>
+<span class="n">model5_CNN</span><span class="o">.</span><span class="nb">compile</span><span class="p">(</span><span class="n">loss</span><span class="o">=</span><span class="s">'binary_crossentropy'</span><span class="p">,</span><span class="n">optimizer</span><span class="o">=</span><span class="s">'adam'</span><span class="p">,</span><span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="s">'accuracy'</span><span class="p">])</span>
+<span class="n">model5_CNN</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_4 (Embedding)      (None, 50, 100)           1300000   
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 50, 100)           0         
+_________________________________________________________________
+conv1d_1 (Conv1D)            (None, 50, 64)            19264     
+_________________________________________________________________
+global_max_pooling1d_1 (Glob (None, 64)                0         
+_________________________________________________________________
+dense_4 (Dense)              (None, 128)               8320      
+_________________________________________________________________
+dropout_2 (Dropout)          (None, 128)               0         
+_________________________________________________________________
+dense_5 (Dense)              (None, 5)                 645       
+=================================================================
+Total params: 1,328,229
+Trainable params: 1,328,229
+Non-trainable params: 0
+_________________________________________________________________
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="o">%%</span><span class="n">time</span>
+<span class="n">early_stop</span> <span class="o">=</span> <span class="n">EarlyStopping</span><span class="p">(</span><span class="n">monitor</span> <span class="o">=</span> <span class="s">"val_loss"</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s">"min"</span><span class="p">,</span> <span class="n">patience</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>
+
+<span class="n">history5</span><span class="o">=</span><span class="n">model5_CNN</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">Y_train</span><span class="p">,</span> <span class="n">validation_data</span><span class="o">=</span><span class="p">(</span><span class="n">X_val</span><span class="p">,</span> <span class="n">Y_val</span><span class="p">),</span><span class="n">epochs</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">callbacks</span> <span class="o">=</span> <span class="p">[</span><span class="n">early_stop</span><span class="p">])</span>
+
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>Train on 124848 samples, validate on 31212 samples
+Epoch 1/3
+124848/124848 [==============================] - 13s 102us/step - loss: 0.3461 - acc: 0.8475 - val_loss: 0.3058 - val_acc: 0.8617
+Epoch 2/3
+124848/124848 [==============================] - 11s 86us/step - loss: 0.2813 - acc: 0.8729 - val_loss: 0.2932 - val_acc: 0.8659
+Epoch 3/3
+124848/124848 [==============================] - 11s 86us/step - loss: 0.2572 - acc: 0.8839 - val_loss: 0.2897 - val_acc: 0.8675
+CPU times: user 36.5 s, sys: 6.75 s, total: 43.2 s
+Wall time: 34.8 s
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">y_pred5</span><span class="o">=</span><span class="n">model5_CNN</span><span class="o">.</span><span class="n">predict_classes</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>66292/66292 [==============================] - 4s 57us/step
+</code></pre></div> <h2 id="gru-cnn">GRU-CNN</h2> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">model6_GruCNN</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">()</span>
+<span class="n">model6_GruCNN</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Embedding</span><span class="p">(</span><span class="n">max_features</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="n">input_length</span><span class="o">=</span><span class="n">max_words</span><span class="p">))</span>
+<span class="n">model6_GruCNN</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Dropout</span><span class="p">(</span><span class="mf">0.2</span><span class="p">))</span>
+<span class="n">model6_GruCNN</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Bidirectional</span><span class="p">(</span><span class="n">GRU</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="mi">128</span> <span class="p">,</span> <span class="n">return_sequences</span><span class="o">=</span><span class="bp">True</span><span class="p">)))</span>
+<span class="n">model6_GruCNN</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Conv1D</span><span class="p">(</span><span class="mi">32</span> <span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span> <span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s">'same'</span> <span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s">'relu'</span><span class="p">))</span>
+<span class="n">model6_GruCNN</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">GlobalMaxPooling1D</span><span class="p">())</span>
+<span class="n">model6_GruCNN</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Dense</span><span class="p">(</span><span class="n">units</span> <span class="o">=</span> <span class="mi">64</span> <span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s">'relu'</span><span class="p">))</span>
+<span class="n">model6_GruCNN</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Dropout</span><span class="p">(</span><span class="mf">0.5</span><span class="p">))</span>
+<span class="n">model6_GruCNN</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Dense</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span><span class="n">activation</span><span class="o">=</span><span class="s">'sigmoid'</span><span class="p">))</span>
+<span class="n">model6_GruCNN</span><span class="o">.</span><span class="nb">compile</span><span class="p">(</span><span class="n">loss</span><span class="o">=</span><span class="s">'binary_crossentropy'</span> <span class="p">,</span> <span class="n">optimizer</span> <span class="o">=</span> <span class="s">'adam'</span> <span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="s">'accuracy'</span><span class="p">])</span>
+<span class="n">model6_GruCNN</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_5 (Embedding)      (None, 50, 100)           1300000   
+_________________________________________________________________
+dropout_3 (Dropout)          (None, 50, 100)           0         
+_________________________________________________________________
+bidirectional_3 (Bidirection (None, 50, 256)           175872    
+_________________________________________________________________
+conv1d_2 (Conv1D)            (None, 50, 32)            24608     
+_________________________________________________________________
+global_max_pooling1d_2 (Glob (None, 32)                0         
+_________________________________________________________________
+dense_6 (Dense)              (None, 64)                2112      
+_________________________________________________________________
+dropout_4 (Dropout)          (None, 64)                0         
+_________________________________________________________________
+dense_7 (Dense)              (None, 5)                 325       
+=================================================================
+Total params: 1,502,917
+Trainable params: 1,502,917
+Non-trainable params: 0
+_________________________________________________________________
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="o">%%</span><span class="n">time</span>
+<span class="n">history7</span> <span class="o">=</span> <span class="n">model6_GruCNN</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">Y_train</span><span class="p">,</span> <span class="n">validation_data</span><span class="o">=</span><span class="p">(</span><span class="n">X_val</span><span class="p">,</span> <span class="n">Y_val</span><span class="p">),</span><span class="n">epochs</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">callbacks</span><span class="o">=</span><span class="p">[</span><span class="n">early_stop</span><span class="p">])</span>
+
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>Train on 124848 samples, validate on 31212 samples
+Epoch 1/4
+124848/124848 [==============================] - 198s 2ms/step - loss: 0.3748 - acc: 0.8388 - val_loss: 0.3092 - val_acc: 0.8570
+Epoch 2/4
+124848/124848 [==============================] - 196s 2ms/step - loss: 0.2996 - acc: 0.8649 - val_loss: 0.2951 - val_acc: 0.8651
+Epoch 3/4
+124848/124848 [==============================] - 194s 2ms/step - loss: 0.2769 - acc: 0.8756 - val_loss: 0.2943 - val_acc: 0.8667
+Epoch 4/4
+124848/124848 [==============================] - 194s 2ms/step - loss: 0.2620 - acc: 0.8823 - val_loss: 0.2959 - val_acc: 0.8682
+CPU times: user 14min 5s, sys: 1min 24s, total: 15min 30s
+Wall time: 13min 4s
+</code></pre></div> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">y_pred6</span><span class="o">=</span><span class="n">model6_GruCNN</span><span class="o">.</span><span class="n">predict_classes</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div> <div class="highlighter-rouge"><pre class="highlight"><code>66292/66292 [==============================] - 97s 1ms/step
+</code></pre></div> <h2 id="ensemble">Ensemble</h2> <div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="nb">all</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s">'model1'</span><span class="p">:</span><span class="n">y_pred1</span><span class="p">,</span><span class="s">'model2'</span><span class="p">:</span><span class="n">y_pred2</span><span class="p">,</span><span class="s">'model3'</span><span class="p">:</span><span class="n">y_pred3</span><span class="p">,</span><span class="s">'model4'</span><span class="p">:</span><span class="n">y_pred4</span><span class="p">,</span><span class="s">'model5'</span><span class="p">:</span><span class="n">y_pred5</span><span class="p">,</span><span class="s">'model6'</span><span class="p">:</span><span class="n">y_pred6</span><span class="p">})</span>
+<span class="n">pred_mode</span><span class="o">=</span><span class="nb">all</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="s">'mode'</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+<span class="nb">all</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+
+</code></pre></div> <div> <style scoped=""> .dataframe tbody tr th:only-of-type { vertical-align: middle; } .dataframe tbody tr th { vertical-align: top; } .dataframe thead th { text-align: right; } </style> <table border="1" class="dataframe"> <thead> <tr style="text-align: right;"> <th></th> <th>model1</th> <th>model2</th> <th>model3</th> <th>model4</th> <th>model5</th> <th>model6</th> </tr> </thead> <tbody> <tr> <th>0</th> <td>2</td> <td>2</td> <td>2</td> <td>2</td> <td>2</td> <td>2</td> </tr> <tr> <th>1</th> <td>2</td> <td>2</td> <td>2</td> <td>2</td> <td>2</td> <td>2</td> </tr> <tr> <th>2</th> <td>2</td> <td>2</td> <td>2</td> <td>2</td> <td>2</td> <td>2</td> </tr> <tr> <th>3</th> <td>2</td> <td>2</td> <td>2</td> <td>2</td> <td>2</td> <td>2</td> </tr> <tr> <th>4</th> <td>2</td> <td>2</td> <td>2</td> <td>2</td> <td>2</td> <td>2</td> </tr> </tbody> </table> </div> </div> <hr> <div class="back-to-top"> <i class="fa fa-arrow-circle-up fa-2x animated infinite pulse" aria-hidden="true"></i> </div> <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script> </div> </div> <label for="sidebar-checkbox" class="sidebar-toggle"></label> <script> (function(document) { var toggle = document.querySelector('.sidebar-toggle'); var sidebar = document.querySelector('#sidebar'); var checkbox = document.querySelector('#sidebar-checkbox'); document.addEventListener('click', function(e) { var target = e.target; if(!checkbox.checked || sidebar.contains(target) || (target === checkbox || target === toggle)) return; checkbox.checked = false; }, false); })(document); </script> <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"> </script> <script> $(".back-to-top i").click(function(){ $('body,html').animate({ scrollTop: 0 }, 2000); }); </script> </body> </html>
